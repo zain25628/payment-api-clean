@@ -1,0 +1,16 @@
+﻿# Python venv
+venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Environment files
+.env
+
+# Local executables / installers
+postgres_installer.exe
+
+# Misc
+*.log
+.DS_Store
