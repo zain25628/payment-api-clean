@@ -98,6 +98,11 @@ tests/
 
 ```bash
 pip install -r requirements.txt
+## Admin panel manual checks
+
+Before changing the admin frontend, run through the manual checklist:
+
+- [Admin panel manual checklist (CompanyForm)](docs/ADMIN_PANEL_MANUAL_CHECKLIST.md)
 ```
 
 3. Apply database migrations (example):
