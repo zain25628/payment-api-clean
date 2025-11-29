@@ -104,3 +104,19 @@ export async function checkHealth(): Promise<{ ok: boolean }> {
     return { ok: false }
   }
 }
+
+export type AdminPaymentsParams = {
+  page?: number
+  page_size?: number
+  status?: string
+  min_amount?: number
+  max_amount?: number
+  created_from?: string
+  created_to?: string
+  txn_id?: string
+}
+
+export async function fetchAdminPayments(params: AdminPaymentsParams = {}) {
+  const resp = await client.get('/admin/payments/', { params })
+  return resp.data
+}

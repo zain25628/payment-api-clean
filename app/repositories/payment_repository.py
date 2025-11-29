@@ -82,3 +82,54 @@ def get_by_id_for_company(db: Session, company_id: int, payment_id: int) -> Opti
         The Payment when found and belonging to `company_id`, else None.
     """
     return db.query(Payment).filter(Payment.id == payment_id, Payment.company_id == company_id).first()
+
+
+def query_payments(
+    db: Session,
+    page: int = 1,
+    page_size: int = 50,
+    status: Optional[str] = None,
+    min_amount: Optional[float] = None,
+    max_amount: Optional[float] = None,
+    created_from: Optional[datetime] = None,
+    created_to: Optional[datetime] = None,
+    company_id: Optional[int] = None,
+    channel_id: Optional[int] = None,
+    wallet_id: Optional[int] = None,
+    txn_id: Optional[str] = None,
+):
+    """Query payments with optional filters and pagination.
+
+    Returns a tuple (items, total).
+    """
+    q = db.query(Payment)
+
+    if status is not None:
+        q = q.filter(Payment.status == status)
+    if min_amount is not None:
+        q = q.filter(Payment.amount >= int(min_amount))
+    if max_amount is not None:
+        q = q.filter(Payment.amount <= int(max_amount))
+    if created_from is not None:
+        q = q.filter(Payment.created_at >= created_from)
+    if created_to is not None:
+        q = q.filter(Payment.created_at <= created_to)
+    if company_id is not None:
+        q = q.filter(Payment.company_id == company_id)
+    if channel_id is not None:
+        q = q.filter(Payment.channel_id == channel_id)
+    if wallet_id is not None:
+        q = q.filter(Payment.wallet_id == wallet_id)
+    if txn_id is not None and txn_id.strip() != "":
+        q = q.filter(Payment.txn_id.contains(txn_id))
+
+    total = q.order_by(None).count()
+
+    items = (
+        q.order_by(Payment.created_at.desc())
+        .offset((max(1, page) - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return items, total
