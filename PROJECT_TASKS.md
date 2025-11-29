@@ -1,5 +1,11 @@
 # Project Tasks Board
 
+## Admin Panel Focus (summary)
+
+- Finish Companies admin UX: create/update forms, provider selection, API key management.
+- Implement Wallets admin: list/create wallets, channel assignment, enable/disable, daily limits.
+- Add Payments admin tools: check/confirm flows, basic filtering and payment details view.
+
 ## [PHASE 1] Project Setup
 - [x] Create project folders: app/, app/core/, app/db/, app/models/, app/schemas/, app/services/, app/routers/, app/utils/, app/dependencies/
 - [x] Create main.py inside /app
