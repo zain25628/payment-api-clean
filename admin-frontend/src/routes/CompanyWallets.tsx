@@ -201,6 +201,8 @@ export default function CompanyWallets(){
                 <tr className="text-left">
                   <th className="p-2">Label</th>
                   <th className="p-2">Identifier</th>
+                  <th className="p-2">Daily limit</th>
+                  <th className="p-2">Used today</th>
                   <th className="p-2">Provider</th>
                   <th className="p-2">Active</th>
                   <th className="p-2">Actions</th>
@@ -211,6 +213,8 @@ export default function CompanyWallets(){
                   <tr key={w.id} className="border-t">
                     <td className="p-2 align-top">{w.wallet_label}</td>
                     <td className="p-2 align-top">{w.wallet_identifier}</td>
+                    <td className="p-2 align-top">{w.daily_limit ?? '—'}</td>
+                    <td className="p-2 align-top">{w.used_today ?? 0}</td>
                     <td className="p-2 align-top">{w.provider_name ?? w.provider_code ?? '—'}</td>
                     <td className="p-2 align-top">{w.is_active ? 'Yes' : 'No'}</td>
                     <td className="p-2 align-top">
