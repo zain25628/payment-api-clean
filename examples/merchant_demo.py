@@ -35,7 +35,8 @@ def check_health():
 
 def request_wallet():
     """POST /wallets/request with a sample payload. Return parsed JSON or None."""
-    payload = {"amount": 100, "currency": "AED", "order_id": "order-1234"}
+    # Use a small amount for dev environment so wallets seeded for dev are usable
+    payload = {"amount": 10, "currency": "AED", "order_id": "order-1234"}
     try:
         r = requests.post(f"{BASE_URL}/wallets/request", headers=HEADERS, json=payload, timeout=10)
         print(f"request_wallet: status={r.status_code}")
