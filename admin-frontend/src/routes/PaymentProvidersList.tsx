@@ -14,6 +14,13 @@ export default function PaymentProvidersList(){
   const [countries, setCountries] = useState<AdminCountry[]>([])
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | undefined>(undefined)
   const [saving, setSaving] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    code?: string;
+    country_code?: string;
+  }>({})
+  const [formError, setFormError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(()=>{
     load()
@@ -46,11 +53,23 @@ export default function PaymentProvidersList(){
   async function onSubmit(e: React.FormEvent){
     e.preventDefault()
     setError(null)
-    if(!code.trim() || !name.trim()){
-      setError('Code and name are required')
+    setFormError(null)
+
+    const errors: typeof fieldErrors = {}
+    if (!name || !name.trim()) errors.name = 'Provider name is required'
+    if (!code || !code.trim()) errors.code = 'Provider code is required'
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      setFormError(null)
       return
     }
+
+    setFieldErrors({})
+    setFormError(null)
+    setIsSubmitting(true)
     setSaving(true)
+
     try{
       await createPaymentProvider({
         code: code.trim(),
@@ -65,8 +84,10 @@ export default function PaymentProvidersList(){
       window.alert('Provider created')
     }catch(err:any){
       const detail = err?.response?.data?.detail || err?.message || 'Create provider failed'
+      setFormError(detail)
       setError(detail)
     }finally{
+      setIsSubmitting(false)
       setSaving(false)
     }
   }
@@ -79,9 +100,17 @@ export default function PaymentProvidersList(){
           {error && <div className="p-2 bg-red-50 text-red-700 rounded">{error}</div>}
 
           <form onSubmit={onSubmit} className="grid grid-cols-1 gap-3">
+            {formError && (
+              <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {formError}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium">Code</label>
               <input value={code} onChange={e=>setCode(e.target.value)} className="mt-1 block w-full border rounded p-2" />
+              {fieldErrors.code && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.code}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">Country (optional)</label>
@@ -89,17 +118,23 @@ export default function PaymentProvidersList(){
                 <option value="">(none)</option>
                 {countries.map(c => <option key={c.id} value={c.code}>{c.name} ({c.code})</option>)}
               </select>
+              {fieldErrors.country_code && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.country_code}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">Name</label>
               <input value={name} onChange={e=>setName(e.target.value)} className="mt-1 block w-full border rounded p-2" />
+              {fieldErrors.name && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.name}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">Description (optional)</label>
               <input value={description} onChange={e=>setDescription(e.target.value)} className="mt-1 block w-full border rounded p-2" />
             </div>
             <div>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded" disabled={saving}>{saving? 'Saving...' : 'Save'}</button>
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50" disabled={isSubmitting || saving}>{isSubmitting || saving? 'Saving...' : 'Save'}</button>
             </div>
           </form>
 
