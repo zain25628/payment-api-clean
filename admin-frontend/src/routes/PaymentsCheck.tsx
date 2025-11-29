@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 
 export const PaymentsCheck: React.FC = () => {
   const [amount, setAmount] = useState<number>(10)
+  const [apiKey, setApiKey] = useState<string>("dev-channel-key")
   const [txnId, setTxnId] = useState<string>('')
   const [payerPhone, setPayerPhone] = useState<string>('')
   const [isChecking, setIsChecking] = useState<boolean>(false)
@@ -15,7 +16,12 @@ export const PaymentsCheck: React.FC = () => {
     setLastResult(null)
 
     try {
-      const payload: any = { order_id: `admin-check-${Date.now()}`, expected_amount: amount }
+      if (!apiKey || !apiKey.trim()) {
+        setError('API key is required')
+        return
+      }
+
+      const payload: any = { order_id: `admin-check-${Date.now()}`, expected_amount: amount, amount }
       if (txnId) payload.txn_id = txnId
       if (payerPhone) payload.payer_phone = payerPhone
 
@@ -23,9 +29,7 @@ export const PaymentsCheck: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Note: the backend resolves company via X-API-Key header. In admin UI
-          // this request is unauthenticated; for local testing you may need to set
-          // the appropriate header or use the browser extension to add `X-API-Key`.
+          'X-API-Key': apiKey.trim(),
         },
         body: JSON.stringify(payload),
       })
@@ -48,6 +52,10 @@ export const PaymentsCheck: React.FC = () => {
 
       <div className="bg-white shadow rounded p-4 mb-4">
         <form onSubmit={onSubmit} className="grid grid-cols-1 gap-3">
+          <div>
+            <label className="block text-sm font-medium">API key (X-API-Key)</label>
+            <input type="text" value={apiKey} onChange={e=>setApiKey(e.target.value)} placeholder="dev-channel-key" className="mt-1 block w-full border rounded p-2" />
+          </div>
           <div>
             <label className="block text-sm font-medium">Amount</label>
             <input type="number" value={amount} onChange={e=>setAmount(Number(e.target.value))} className="mt-1 block w-full border rounded p-2" />
