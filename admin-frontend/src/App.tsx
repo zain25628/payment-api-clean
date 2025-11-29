@@ -7,6 +7,7 @@ import CountriesList from './routes/CountriesList'
 import PaymentProvidersList from './routes/PaymentProvidersList'
 import CompanyWallets from './routes/CompanyWallets'
 import { PaymentsCheck } from './routes/PaymentsCheck'
+import PaymentsHistory from './routes/PaymentsHistory'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/countries" element={<CountriesList />} />
         <Route path="/payment-providers" element={<PaymentProvidersList />} />
         <Route path="/payments/check" element={<PaymentsCheck />} />
+        <Route path="/payments/history" element={<PaymentsHistory />} />
       </Routes>
     </Layout>
   )
