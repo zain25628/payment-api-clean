@@ -184,6 +184,23 @@ POST /wallets/request → 200 OK with "WALLET-DEV-001" and "Dev Test Wallet".
 
 POST /payments/check → 200 OK with "found": false (no payment created yet in this demo).
 
+### Creating a matching test payment
+
+To have `/payments/check` return `found: true` in the demo:
+
+```powershell
+cd C:\Users\zaink\OneDrive\Desktop\api
+& .\.venv\Scripts\Activate.ps1
+python create_test_payment.py
+
+$env:MERCHANT_API_KEY = "dev-channel-key"
+python .\examples\merchant_demo.py
+```
+
+`create_test_payment.py` will insert a dev `Payment` for the seeded
+`Dev Co` / `dev-channel-key` / `WALLET-DEV-001` so that the demo
+`check_payment` call can match it.
+
 
 ## Documentation
 
