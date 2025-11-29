@@ -171,6 +171,40 @@ export default function CompanyForm(){
     }
   }
 
+  // Quick integration snippets as string constants so JSX doesn't try to parse
+  // the example code as real TSX/JS objects.
+  const jsSnippet = `fetch("http://localhost:8000/wallets/request", {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': '${company?.api_key ?? "<YOUR_MERCHANT_API_KEY>"}',
+  },
+  body: JSON.stringify({
+    amount: 100,
+    currency: 'AED',
+    txn_id: 'ORDER-123',
+    payer_phone: '+971500000000',
+  }),
+}).then(r => r.json()).then(console.log);`;
+
+  const pythonSnippet = `import os
+import requests
+
+BASE_URL = os.getenv("PAYMENT_GATEWAY_BASE_URL", "http://localhost:8000")
+API_KEY = os.getenv("MERCHANT_API_KEY", "${company?.api_key ?? '<YOUR_MERCHANT_API_KEY>'}")
+
+resp = requests.post(
+    f"{BASE_URL}/wallets/request",
+    headers={"X-API-Key": API_KEY},
+    json={
+        "amount": 100,
+        "currency": "AED",
+        "txn_id": "ORDER-123",
+        "payer_phone": "+971500000000",
+    },
+)
+print(resp.status_code, resp.json())`;
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto px-4 py-6">
@@ -259,13 +293,19 @@ export default function CompanyForm(){
 
               <div className="mt-4">
                 <h3 className="font-medium">Quick integration snippet</h3>
-                <p className="text-sm text-gray-600 mb-2">Embed this fetch to call the public payments API using the company API key.</p>
-                <pre className="bg-black text-white text-sm p-3 rounded overflow-auto">{`fetch("http://localhost:8000/payments/check", {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'X-API-Key': '${company.api_key ?? ''}' },
-  body: JSON.stringify({ txn_id: 'TXN123', expected_amount: 100 })
-}).then(r => r.json()).then(console.log)
-`}</pre>
+                <p className="text-sm text-gray-600 mb-2">Use this snippet to request a wallet/payment destination from the gateway. Replace the placeholders with your environment values and keep your API key secret (store it in an environment variable).</p>
+
+                <div className="mb-3">
+                  <div className="text-sm font-medium mb-1">JavaScript (fetch)</div>
+                  <pre className="bg-black text-white text-sm p-3 rounded overflow-auto"><code>{jsSnippet}</code></pre>
+                </div>
+
+                <div>
+                  <div className="text-sm font-medium mb-1">Python (requests)</div>
+                  <pre className="bg-black text-white text-sm p-3 rounded overflow-auto"><code>{pythonSnippet}</code></pre>
+                </div>
+
+                <p className="text-xs text-gray-500 mt-2">Note: <strong>BASE_URL</strong> depends on your environment (dev/staging/prod). Use the values from your deployment or `http://localhost:8000` for local development. Do not hard-code your API key in browser/client code — keep it on your server or in environment variables.</p>
               </div>
             </div>
           )}
