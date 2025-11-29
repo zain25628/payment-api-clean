@@ -4,6 +4,11 @@ import Layout from '../components/Layout'
 import { fetchCompanyWallets, toggleWallet, createCompanyWallet, getCompany } from '../lib/api'
 import { AdminWalletOut, AdminChannelOut } from '../lib/types'
 
+function formatNumber(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(Number(value))) return '—'
+  return Number(value).toLocaleString()
+}
+
 export default function CompanyWallets(){
   const { id } = useParams<{id: string}>()
   const navigate = useNavigate()
@@ -213,8 +218,8 @@ export default function CompanyWallets(){
                   <tr key={w.id} className="border-t">
                     <td className="p-2 align-top">{w.wallet_label}</td>
                     <td className="p-2 align-top">{w.wallet_identifier}</td>
-                    <td className="p-2 align-top">{w.daily_limit ?? '—'}</td>
-                    <td className="p-2 align-top">{w.used_today ?? 0}</td>
+                    <td className="p-2 align-top">{formatNumber(w.daily_limit)}</td>
+                    <td className="p-2 align-top">{formatNumber(w.used_today ?? 0)}</td>
                     <td className="p-2 align-top">{w.provider_name ?? w.provider_code ?? '—'}</td>
                     <td className="p-2 align-top">{w.is_active ? 'Yes' : 'No'}</td>
                     <td className="p-2 align-top">
