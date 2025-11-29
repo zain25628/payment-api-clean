@@ -19,3 +19,4 @@ postgres_installer.exe
 node_modules/
 admin-frontend/node_modules/
 dev.db
+admin-frontend/dist/
