@@ -65,3 +65,29 @@ Steps:
 
 5. Notes:
    - Use this page together with `merchant_demo.py` to verify that a wallet can be picked for a given company/channel and amount.
+
+## 3) Payment Providers – create & validate
+
+Steps:
+1. Ensure backend & frontend are running:
+   - Backend: `.\dev_start_stack.ps1` from the project root.
+   - Frontend: `npm run dev` from `admin-frontend` (Vite on http://localhost:5173/).
+
+2. Open the "Payment Providers" page in the admin UI.
+
+3. Validation checks:
+   - Try to submit the provider form empty:
+     - Field-level errors should appear under required fields (e.g. `name`, `code`).
+   - Enter clearly invalid values if applicable (e.g. whitespace-only `name`):
+     - The form should show a validation error for those fields.
+   - While submitting:
+     - The "Save" button should be disabled and show a loading text (e.g. "Saving...").
+
+4. Happy path:
+   - Create a new payment provider with:
+     - A clear `name` and unique `code`.
+     - A valid country selection and any required fields.
+   - The provider should appear in the table with the correct values.
+
+5. Error handling:
+   - If the backend returns an error (e.g. duplicate `code`), a general error banner should appear above the form.
