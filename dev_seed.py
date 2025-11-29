@@ -15,6 +15,7 @@ def main():
     from app.models.country import Country, PaymentProvider, CountryPaymentProvider
     from app.models.company import Company
     from app.models.channel import Channel
+    from app.models.wallet import Wallet
 
     # create tables if missing
     Base.metadata.create_all(bind=engine)
@@ -100,6 +101,32 @@ def main():
                 updated_at=now,
             )
             db.add(channel)
+
+        # 6) ensure a generous wallet exists for dev testing
+        wallet = (
+            db.query(Wallet)
+            .filter(
+                Wallet.company_id == company.id,
+                Wallet.channel_id == channel.id,
+            )
+            .first()
+        )
+
+        if not wallet:
+            wallet = Wallet(
+                company_id=company.id,
+                channel_id=channel.id,
+                wallet_label="Dev Test Wallet",
+                wallet_identifier="WALLET-DEV-001",
+                daily_limit=100000,
+                used_today=0,
+                is_active=True,
+                created_at=now,
+                updated_at=now,
+            )
+            db.add(wallet)
+        else:
+            print(f"Using existing wallet id={wallet.id}, label={wallet.wallet_label}")
 
         db.commit()
 
