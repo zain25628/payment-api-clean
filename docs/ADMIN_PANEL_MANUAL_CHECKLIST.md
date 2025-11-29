@@ -35,3 +35,33 @@ Steps:
 ## Notes
 - إذا تغيّرت أسماء الحقول أو المسارات في المستقبل، حدّث هذه التشيك ليست.
 - الهدف: خطوة واحدة بسيطة للتأكد أن CompanyForm يعمل بعد أي تعديل على الواجهة أو الـ backend.
+
+## 2) Company Wallets – create & toggle
+
+Steps:
+1. Ensure backend & frontend are running:
+   - Backend: `.`\dev_start_stack.ps1` from the project root.
+   - Frontend: `npm run dev` from `admin-frontend` (Vite on http://localhost:5173/).
+
+2. Open the "Company Wallets" page in the admin UI.
+
+3. Validation checks:
+   - Try to submit the wallet form empty:
+     - Field-level errors should appear under required fields (label, identifier, daily limit, channel).
+   - Enter invalid values (e.g. daily limit = 0 or negative):
+     - The form should show a validation error for the daily limit field.
+   - While submitting:
+     - The "Create" button should be disabled and show a loading text (e.g. "Creating...").
+
+4. Happy path:
+   - Create a new wallet with:
+     - A clear label and identifier.
+     - A positive daily_limit (e.g. 10_000).
+     - An active channel selected.
+   - The wallet should appear in the table with:
+     - Correct label, identifier, daily_limit, and used_today = 0.
+   - Click "Toggle Active":
+     - The Active column should update accordingly (true/false).
+
+5. Notes:
+   - Use this page together with `merchant_demo.py` to verify that a wallet can be picked for a given company/channel and amount.
