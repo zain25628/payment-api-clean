@@ -34,6 +34,14 @@ export default function CompanyWallets(){
   const [dailyLimit, setDailyLimit] = useState<number>(0)
   const [channelId, setChannelId] = useState<number | ''>('')
   const [isActive, setIsActive] = useState<boolean>(true)
+  const [fieldErrors, setFieldErrors] = useState<{
+    wallet_label?: string;
+    wallet_identifier?: string;
+    daily_limit?: string;
+    channel_id?: string;
+  }>({})
+  const [formError, setFormError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [channels, setChannels] = useState<AdminChannelOut[]>([])
 
   useEffect(()=>{
@@ -78,6 +86,24 @@ export default function CompanyWallets(){
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    setFormError(null)
+
+    const errors: typeof fieldErrors = {}
+    if (!walletLabel || !walletLabel.trim()) errors.wallet_label = 'Wallet label is required'
+    if (!walletIdentifier || !walletIdentifier.trim()) errors.wallet_identifier = 'Wallet identifier is required'
+    if (!dailyLimit || Number(dailyLimit) <= 0) errors.daily_limit = 'Daily limit must be greater than 0'
+    if (channelId === '' || channelId === null) errors.channel_id = 'Channel is required'
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      setFormError(null)
+      return
+    }
+
+    setFieldErrors({})
+    setFormError(null)
+    setIsSubmitting(true)
+
     const payload = {
       wallet_label: walletLabel,
       wallet_identifier: walletIdentifier,
@@ -98,8 +124,11 @@ export default function CompanyWallets(){
     } catch (err: any) {
       console.error('createCompanyWallet failed', err)
       const detail = err?.response?.data?.detail
+      setFormError(typeof detail === 'string' ? detail : (err?.message ?? 'Failed to create wallet'))
       setError(typeof detail === 'string' ? detail : 'Failed to create wallet')
       alert(typeof detail === 'string' ? detail : 'Failed to create wallet')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -115,23 +144,50 @@ export default function CompanyWallets(){
 
         {/* Create wallet form - minimal fields matching AdminWalletCreate */}
         <form onSubmit={handleCreate} className="mb-4 p-4 bg-gray-50 rounded">
+          {formError && (
+            <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {formError}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
-            <input placeholder="Wallet Label" value={walletLabel} onChange={e => setWalletLabel(e.target.value)} className="p-2 border rounded" />
-            <input placeholder="Wallet Identifier" value={walletIdentifier} onChange={e => setWalletIdentifier(e.target.value)} className="p-2 border rounded" />
-            <input type="number" placeholder="Daily Limit" value={dailyLimit} onChange={e => setDailyLimit(Number(e.target.value))} className="p-2 border rounded" />
+            <div>
+              <input placeholder="Wallet Label" value={walletLabel} onChange={e => setWalletLabel(e.target.value)} className="p-2 border rounded w-full" />
+              {fieldErrors.wallet_label && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.wallet_label}</p>
+              )}
+            </div>
+            <div>
+              <input placeholder="Wallet Identifier" value={walletIdentifier} onChange={e => setWalletIdentifier(e.target.value)} className="p-2 border rounded w-full" />
+              {fieldErrors.wallet_identifier && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.wallet_identifier}</p>
+              )}
+            </div>
+            <div>
+              <input type="number" placeholder="Daily Limit" value={dailyLimit} onChange={e => setDailyLimit(Number(e.target.value))} className="p-2 border rounded w-full" />
+              {fieldErrors.daily_limit && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.daily_limit}</p>
+              )}
+            </div>
             {/* Channel select populated from company channels */}
-            <select value={channelId as any} onChange={e => setChannelId(e.target.value === '' ? '' : Number(e.target.value))} className="p-2 border rounded">
-              <option value="">Select channel...</option>
-              {channels.map(ch => (
-                <option key={ch.id} value={ch.id}>
-                  {ch.provider_name ?? ch.provider_code ?? `Channel ${ch.id}`}
-                </option>
-              ))}
-            </select>
+            <div>
+              <select value={channelId as any} onChange={e => setChannelId(e.target.value === '' ? '' : Number(e.target.value))} className="p-2 border rounded w-full">
+                <option value="">Select channel...</option>
+                {channels.map(ch => (
+                  <option key={ch.id} value={ch.id}>
+                    {ch.provider_name ?? ch.provider_code ?? `Channel ${ch.id}`}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.channel_id && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.channel_id}</p>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3 mt-3">
             <label className="flex items-center gap-2"><input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} /> Active</label>
-            <button type="submit" className="px-3 py-1 bg-blue-600 text-white rounded">Create Wallet</button>
+            <button type="submit" disabled={isSubmitting} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50">
+              {isSubmitting ? 'Creating...' : 'Create Wallet'}
+            </button>
           </div>
         </form>
 
