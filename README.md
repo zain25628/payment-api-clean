@@ -135,6 +135,25 @@ To run the full test suite:
 pytest -q
 ```
 
+## Merchant onboarding PDFs
+
+You can generate a PDF onboarding package for a merchant using the provided
+Markdown template and helper script. Example (PowerShell):
+
+```powershell
+cd "C:\Users\zaink\OneDrive\Desktop\api"
+& .\.venv\Scripts\Activate.ps1
+
+python .\generate_onboarding_pdf.py `
+  --merchant-name "UI Test Shop" `
+  --api-key "<PASTE-COMPANY-API-KEY>" `
+  --base-url "http://localhost:8000" `
+  --environment "dev"
+```
+
+The template file is `docs/MERCHANT_ONBOARDING_TEMPLATE.md`. The generated PDF
+will be written to `docs/<slug>-onboarding-YYYY-MM-DD.pdf` by default.
+
 ## Developer utilities
 
 Short pointers for local testing:

@@ -133,3 +133,40 @@ Steps:
   - Expect an on-page validation error before the request is sent.
   - Use an invalid key and submit.
   - Expect backend to respond with 401 and error details shown in the result area.
+
+## Merchant onboarding (one-click)
+
+After creating a new company from the Admin UI (Companies → Create Company), the system should provision the following automatically:
+
+- Company API key
+- A default Channel (if none were created via provider codes)
+- A default Wallet attached to the first channel (daily limit set to the dev default)
+
+Manual checks:
+
+1. Create a company via the Admin UI using the Create Company form.
+2. After the create completes, open the company details (or the result panel) and confirm you see:
+  - Company API key (visible, masked or partial is acceptable for display)
+  - First Channel API key
+  - Default wallet identifier
+3. In the Result area you should also see a Quick integration snippet (JS + Python) showing how to call `/wallets/request` using the `X-API-Key` header.
+4. If any of the above are missing, file a bug and verify backend logs for errors.
+
+This checklist item ensures that a merchant can be onboarded with a single create action and immediately begin integration tests.
+
+### Generating a merchant PDF
+
+After creating a company and copying the API key from the Result area, you can
+generate a standalone onboarding PDF for the merchant by running:
+
+```powershell
+cd "C:\Users\zaink\OneDrive\Desktop\api"
+& .\.venv\Scripts\Activate.ps1
+python .\generate_onboarding_pdf.py `
+  --merchant-name "UI Test Shop" `
+  --api-key "<PASTE-COMPANY-API-KEY>" `
+  --base-url "http://localhost:8000" `
+  --environment "dev"
+```
+
+This will produce a file like `docs/ui-test-shop-onboarding-YYYY-MM-DD.pdf`.

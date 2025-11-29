@@ -9,3 +9,5 @@ pydantic-settings
 httpx
 pytest
 requests
+markdown
+WeasyPrint
