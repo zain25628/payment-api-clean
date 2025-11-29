@@ -117,7 +117,10 @@ Steps:
   - Expect result:
     - `found: true`
     - `match: true`
-    - `payment` object present.
+    - `payment` object present and `confirm_token` present when match is true.
+  - If `confirm_token` appears, click the `Confirm usage` button to mark the payment as used:
+    - The page should show a success response (or updated state).
+    - Re-run the same Check (same order/txn) and expect the backend to indicate the payment was already used (e.g. `reason: "already used"` or `match: false`).
 
 5. Negative / mismatch scenarios:
   - Change `amount` to a different value and check again.
