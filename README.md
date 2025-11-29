@@ -142,6 +142,9 @@ Short pointers for local testing:
 - Dev seed script: `docs/dev_seed.md` (creates a sample country, provider, company and channel)
 - Manual flow: `docs/manual_flow.md` (example requests for incoming-sms, payments/check and payments/confirm)
 
+> Note: The local SQLite database file `dev.db` is ignored by Git and should not be committed.
+> Each developer can safely recreate it locally using `python dev_seed.py`.
+
 
 ## Documentation
 
