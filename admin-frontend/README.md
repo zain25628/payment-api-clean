@@ -61,3 +61,12 @@ npm run dev
 ```
 
 If the commands are still not recognized, restart Windows, then retry the steps above.
+
+## Backend & docs
+
+This admin frontend is designed to work with the FastAPI backend in the
+project root.
+
+- See `../README.md` for backend setup and the local end-to-end demo
+	(`dev_seed.py`, `create_test_payment.py`, `merchant_demo.py`).
+- See `../CHANGELOG.md` for recent changes to the backend and tooling.
