@@ -91,3 +91,42 @@ Steps:
 
 5. Error handling:
    - If the backend returns an error (e.g. duplicate `code`), a general error banner should appear above the form.
+
+## 4) Payments – check & verify
+
+Steps:
+1. Ensure backend and admin frontend are running:
+  - Backend: `.`\dev_start_stack.ps1` (or `python -m uvicorn app.main:app --reload`)
+  - Frontend: from `admin-frontend`: `npm run dev`
+
+2. Open the Payments check page:
+  - URL: `http://localhost:5173/`
+  - Navigate to: "Payments" in the admin nav.
+
+3. Enter API key:
+  - Use the dev channel key from `dev_seed.py` output (default: `dev-channel-key`).
+  - Paste into the "API key (X-API-Key)" field.
+
+4. Check a known test payment:
+  - From `create_test_payment.py` output, take:
+    - `amount`
+    - `txn_id`
+    - `payer_phone` (if set)
+  - Fill the form with matching values.
+  - Click "Check payment".
+  - Expect result:
+    - `found: true`
+    - `match: true`
+    - `payment` object present.
+
+5. Negative / mismatch scenarios:
+  - Change `amount` to a different value and check again.
+  - Expect:
+    - `found: true`, `match: false`
+    - `reason` explains mismatch (e.g. amount mismatch).
+
+6. Error handling:
+  - Clear API key and submit.
+  - Expect an on-page validation error before the request is sent.
+  - Use an invalid key and submit.
+  - Expect backend to respond with 401 and error details shown in the result area.
