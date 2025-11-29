@@ -146,6 +146,45 @@ Short pointers for local testing:
 > Each developer can safely recreate it locally using `python dev_seed.py`.
 
 
+## Local end-to-end demo (merchant_demo.py)
+
+You can run a small end-to-end demo against the local dev stack using the seeded dev channel key.
+
+Steps:
+
+1. Start the dev stack (backend + admin):
+  - From the project root:
+    ```powershell
+    .\dev_start_stack.ps1
+    ```
+  - Backend runs on `http://localhost:8000`
+  - Admin frontend (if running) is on `http://localhost:5173/`.
+
+2. Seed the dev database (creates Dev Co, a dev channel, and a dev wallet):
+  ```powershell
+  cd C:\Users\zaink\OneDrive\Desktop\api
+  & .\.venv\Scripts\Activate.ps1
+  python dev_seed.py
+  ```
+
+Run the merchant demo using the seeded dev channel key:
+
+```powershell
+cd C:\Users\zaink\OneDrive\Desktop\api
+& .\.venv\Scripts\Activate.ps1
+$env:MERCHANT_API_KEY = "dev-channel-key"
+python .\examples\merchant_demo.py
+```
+
+Expected behavior:
+
+GET /health → 200 OK.
+
+POST /wallets/request → 200 OK with "WALLET-DEV-001" and "Dev Test Wallet".
+
+POST /payments/check → 200 OK with "found": false (no payment created yet in this demo).
+
+
 ## Documentation
 
 * See `docs/INDEX.md` for a list of more detailed documents:
