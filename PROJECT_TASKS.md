@@ -74,3 +74,5 @@ cd C:\Users\zaink\OneDrive\Desktop\api
 ```
 
 This script activates the `venv`, installs dependencies, verifies `DATABASE_URL` is visible to Python, and starts the app with `uvicorn` in reload mode.
+
+- [x] End-to-end dev demo: `dev_seed.py` + `create_test_payment.py` + `examples/merchant_demo.py` (happy path verified, documented in README)
