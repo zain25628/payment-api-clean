@@ -18,3 +18,4 @@ postgres_installer.exe
 # Node / frontend
 node_modules/
 admin-frontend/node_modules/
+dev.db
