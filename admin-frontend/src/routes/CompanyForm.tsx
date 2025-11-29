@@ -250,6 +250,23 @@ export default function CompanyForm(){
             <div className="bg-gray-50 p-4 rounded mt-6">
               <h2 className="font-semibold">Result</h2>
               <div className="mt-2">API key: <code className="bg-white px-2 py-1 rounded">{company.api_key ?? '—'}</code></div>
+              {company.channels && company.channels.length > 0 && (
+                <div className="mt-2">Channel API key: <code className="bg-white px-2 py-1 rounded">{company.channels[0].channel_api_key ?? '—'}</code></div>
+              )}
+              {company.wallets && company.wallets.length > 0 && (
+                <div className="mt-2">Default wallet: <code className="bg-white px-2 py-1 rounded">{company.wallets[0].wallet_identifier ?? '—'}</code></div>
+              )}
+
+              <div className="mt-4">
+                <h3 className="font-medium">Quick integration snippet</h3>
+                <p className="text-sm text-gray-600 mb-2">Embed this fetch to call the public payments API using the company API key.</p>
+                <pre className="bg-black text-white text-sm p-3 rounded overflow-auto">{`fetch("http://localhost:8000/payments/check", {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'X-API-Key': '${company.api_key ?? ''}' },
+  body: JSON.stringify({ txn_id: 'TXN123', expected_amount: 100 })
+}).then(r => r.json()).then(console.log)
+`}</pre>
+              </div>
             </div>
           )}
         </div>

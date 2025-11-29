@@ -41,6 +41,7 @@ export type AdminCompanyOut = {
   telegram_default_group_id?: string | null
   is_active: boolean
   channels: AdminChannelOut[]
+  wallets?: AdminWalletOut[]
 }
 
 export type AdminCompanyCreatePayload = {

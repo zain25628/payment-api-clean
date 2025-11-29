@@ -37,7 +37,25 @@ def _company_to_admin_out(company: Company) -> AdminCompanyOut:
                 is_active=ch.is_active,
             )
         )
-
+    # map wallets (if present) into admin wallet output
+    wallets_out = []
+    for w in getattr(company, 'wallets', []) or []:
+        provider = None
+        if w.channel and getattr(w.channel, 'provider', None) is not None:
+            provider = w.channel.provider
+        wallets_out.append(
+            {
+                'id': w.id,
+                'wallet_label': w.wallet_label,
+                'wallet_identifier': w.wallet_identifier,
+                'daily_limit': w.daily_limit,
+                'is_active': w.is_active,
+                'channel_id': w.channel_id,
+                'channel_name': w.channel.name if w.channel is not None else '',
+                'provider_code': provider.code if provider is not None else None,
+                'provider_name': provider.name if provider is not None else None,
+            }
+        )
     return AdminCompanyOut(
         id=company.id,
         name=company.name,
@@ -47,6 +65,7 @@ def _company_to_admin_out(company: Company) -> AdminCompanyOut:
         telegram_bot_token=company.telegram_bot_token,
         telegram_default_group_id=company.telegram_default_group_id,
         channels=channels_out,
+        wallets=wallets_out,
     )
 
 
@@ -56,6 +75,9 @@ def create_company(
     db: Session = Depends(get_db),
 ):
     company = AdminCompanyService.create_company_with_channels(db, data)
+    # Provision onboarding artifacts (default channel + wallet) for convenience.
+    # Keep this router-level so unit tests calling the service directly are unaffected.
+    company = AdminCompanyService.provision_onboarding(db, company)
     db.refresh(company)
     return _company_to_admin_out(company)
 

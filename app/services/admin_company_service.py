@@ -4,8 +4,10 @@ from typing import Iterable, Dict
 
 from app.models.company import Company
 from app.models.channel import Channel
+from app.models.wallet import Wallet
 from app.models.country import PaymentProvider
 from app.schemas.admin_company import AdminCompanyCreate
+from app.config import settings
 
 
 class AdminCompanyService:
@@ -68,6 +70,46 @@ class AdminCompanyService:
             db.add(channel)
 
         # 4) commit and refresh company
+        db.commit()
+        db.refresh(company)
+        return company
+
+    @staticmethod
+    def provision_onboarding(db: Session, company: Company) -> Company:
+        """
+        Provision a primary channel and wallet for a newly-created company.
+
+        This method is intentionally separate from `create_company_with_channels`
+        so unit tests that call the service directly are not affected.
+        """
+        # create a default channel only if the company has no channels
+        existing_channels = db.query(Channel).filter(Channel.company_id == company.id).all()
+        if not existing_channels:
+            default_channel = Channel(
+                company_id=company.id,
+                name="Primary Channel",
+                channel_api_key=AdminCompanyService.generate_api_key(),
+                is_active=True,
+            )
+            db.add(default_channel)
+            db.flush()
+            channel_to_use = default_channel
+        else:
+            channel_to_use = existing_channels[0]
+
+        # create a default wallet if none exist
+        existing_wallets = db.query(Wallet).filter(Wallet.company_id == company.id).all()
+        if not existing_wallets:
+            default_wallet = Wallet(
+                company_id=company.id,
+                channel_id=channel_to_use.id,
+                wallet_label=f"Default Wallet",
+                wallet_identifier=f"WALLET-{company.id}-1",
+                daily_limit=getattr(settings, 'DEFAULT_WALLET_DAILY_LIMIT', 100000.0),
+                is_active=True,
+            )
+            db.add(default_wallet)
+
         db.commit()
         db.refresh(company)
         return company

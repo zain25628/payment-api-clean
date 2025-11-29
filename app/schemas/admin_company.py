@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from app.schemas.admin_wallets import AdminWalletOut
 
 
 class AdminChannelOut(BaseModel):
@@ -33,6 +34,7 @@ class AdminCompanyOut(BaseModel):
     telegram_bot_token: Optional[str] = None
     telegram_default_group_id: Optional[str] = None
     channels: List[AdminChannelOut] = []
+    wallets: List[AdminWalletOut] = []
 
     model_config = {"from_attributes": True}
 

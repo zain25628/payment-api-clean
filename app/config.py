@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     PROJECT_VERSION: str = "0.1.0"
     DATABASE_URL: str
     SECRET_KEY: str = "CHANGE_ME"
+    # Defaults used for merchant onboarding and local development
+    DEFAULT_MERCHANT_BASE_URL_DEV: str = "http://localhost:8000"
+    DEFAULT_MERCHANT_DOCS_URL: str = "https://docs.example.com/merchant-integration"
+    DEFAULT_WALLET_DAILY_LIMIT: float = 100000.0
 
 
 @lru_cache()
