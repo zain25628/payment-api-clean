@@ -29,6 +29,9 @@ export default function CompanyForm(){
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [selectedProviderCodes, setSelectedProviderCodes] = useState<string[]>([])
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+  const [pdfLink, setPdfLink] = useState<string | null>(null)
+  const [pdfError, setPdfError] = useState<string | null>(null)
 
   useEffect(()=>{
     setCountriesLoading(true)
@@ -171,6 +174,35 @@ export default function CompanyForm(){
     }
   }
 
+  async function handleGenerateOnboardingPdf(){
+    if(!company) return
+    setIsGeneratingPdf(true)
+    setPdfError(null)
+    setPdfLink(null)
+    try{
+      const res = await fetch(`http://localhost:8000/admin/companies/${company.id}/onboarding-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if(!res.ok){
+        const txt = await res.text()
+        throw new Error(txt || `Request failed: ${res.status}`)
+      }
+      const data = await res.json()
+      if(data.download_url){
+        setPdfLink(data.download_url)
+      } else if(data.html_path){
+        setPdfError('PDF not available; use server-side HTML to print to PDF.')
+      } else {
+        setPdfError('Unexpected response from server')
+      }
+    }catch(err:any){
+      setPdfError(err?.message || 'Failed to generate PDF')
+    }finally{
+      setIsGeneratingPdf(false)
+    }
+  }
+
   // Quick integration snippets as string constants so JSX doesn't try to parse
   // the example code as real TSX/JS objects.
   const jsSnippet = `fetch("http://localhost:8000/wallets/request", {
@@ -290,6 +322,25 @@ print(resp.status_code, resp.json())`;
               {company.wallets && company.wallets.length > 0 && (
                 <div className="mt-2">Default wallet: <code className="bg-white px-2 py-1 rounded">{company.wallets[0].wallet_identifier ?? '—'}</code></div>
               )}
+
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={handleGenerateOnboardingPdf}
+                  disabled={!company || isGeneratingPdf}
+                  className="inline-flex items-center rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+                >
+                  {isGeneratingPdf ? 'Generating PDF...' : 'Generate onboarding PDF'}
+                </button>
+
+                {pdfLink && (
+                  <a href={pdfLink} target="_blank" rel="noreferrer" className="ml-3 text-sm text-blue-600 hover:underline">Download latest PDF</a>
+                )}
+
+                {pdfError && (
+                  <div className="mt-2 text-sm text-red-600">{pdfError}</div>
+                )}
+              </div>
 
               <div className="mt-4">
                 <h3 className="font-medium">Quick integration snippet</h3>

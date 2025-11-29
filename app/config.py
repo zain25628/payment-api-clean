@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     DEFAULT_MERCHANT_BASE_URL_DEV: str = "http://localhost:8000"
     DEFAULT_MERCHANT_DOCS_URL: str = "https://docs.example.com/merchant-integration"
     DEFAULT_WALLET_DAILY_LIMIT: float = 100000.0
+    # Onboarding PDF output directory (relative to repo root)
+    ONBOARDING_OUTPUT_DIR: str = "generated_onboarding"
+    # Environment name used in generated docs
+    ENVIRONMENT_NAME: str = "dev"
 
 
 @lru_cache()
