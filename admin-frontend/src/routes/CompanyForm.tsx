@@ -14,7 +14,10 @@ export default function CompanyForm(){
   const [providers, setProviders] = useState<AdminPaymentProvider[]>([])
   const [providersLoading, setProvidersLoading] = useState(false)
   const [companyLoading, setCompanyLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
+
+  const [formError, setFormError] = useState<string | null>(null)
+  const [errors, setErrors] = useState<{ name?: string; provider?: string; apiKey?: string }>(()=> ({}))
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [form, setForm] = useState({
     name: '',
@@ -24,10 +27,8 @@ export default function CompanyForm(){
 
   const [company, setCompany] = useState<AdminCompanyOut | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [fieldError, setFieldError] = useState<{name?:string}>({})
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [selectedProviderCodes, setSelectedProviderCodes] = useState<string[]>([])
-  // extend fieldError to include providers
-  const [providersFieldError, setProvidersFieldError] = useState<string | undefined>()
 
   useEffect(()=>{
     setCountriesLoading(true)
@@ -96,11 +97,11 @@ export default function CompanyForm(){
   function onChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>){
     const { name, value } = e.target
     setForm(s => ({ ...s, [name]: value }))
-    if(name === 'name' && value.trim()) setFieldError(f=> ({...f, name: undefined}))
+    if(name === 'name' && value.trim()) setErrors(f=> ({...f, name: undefined}))
   }
 
   function toggleProvider(code: string){
-    setProvidersFieldError(undefined)
+    setErrors(f=> ({...f, provider: undefined}))
     setSelectedProviderCodes(prev => {
       if(prev.includes(code)) return prev.filter(p => p !== code)
       return [...prev, code]
@@ -108,29 +109,38 @@ export default function CompanyForm(){
   }
 
   function selectAllProviders(){
-    setProvidersFieldError(undefined)
+    setErrors(f=> ({...f, provider: undefined}))
     setSelectedProviderCodes(providers.map(p=>p.code))
   }
 
   function clearAllProviders(){
-    setProvidersFieldError(undefined)
+    setErrors(f=> ({...f, provider: undefined}))
     setSelectedProviderCodes([])
   }
 
   async function onSubmit(e: React.FormEvent){
     e.preventDefault()
     setErrorMessage(null)
-    if(!form.name || !form.name.trim()){
-      setFieldError({ name: 'Name is required' })
+    setFormError(null)
+
+    const newErrors: { name?: string; provider?: string; apiKey?: string } = {}
+    if(!form.name || !form.name.trim()) newErrors.name = 'Company name is required'
+    if(!selectedProviderCodes || selectedProviderCodes.length === 0) newErrors.provider = 'Select at least one provider'
+
+    // optional: validate apiKey/callback if present on the form object
+    const maybeApiKey = (form as any).api_key ?? (form as any).apiKey
+    if(typeof maybeApiKey !== 'undefined'){
+      if(!maybeApiKey || String(maybeApiKey).trim() === '') newErrors.apiKey = 'API key is required'
+    }
+
+    if(Object.keys(newErrors).length){
+      setErrors(newErrors)
       return
     }
 
-    if(!selectedProviderCodes || selectedProviderCodes.length === 0){
-      setProvidersFieldError('Select at least one provider')
-      return
-    }
+    setErrors({})
+    setIsSubmitting(true)
 
-    setSaving(true)
     const payload: AdminCompanyCreatePayload = {
       name: form.name.trim(),
       country_code: form.country_code || undefined,
@@ -146,8 +156,8 @@ export default function CompanyForm(){
         const created = await createCompany(payload)
         setCompany(created)
       }
-      window.alert('Company saved')
-      navigate('/companies')
+      setSuccessMessage('Company saved')
+      setTimeout(()=> navigate('/companies'), 700)
     }catch(err:any){
       const axiosErr = err as any
       const detail =
@@ -155,9 +165,9 @@ export default function CompanyForm(){
         axiosErr?.response?.statusText ||
         axiosErr?.message ||
         'Failed to save company'
-      setErrorMessage(detail)
+      setFormError(typeof detail === 'string' ? detail : JSON.stringify(detail))
     }finally{
-      setSaving(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -174,12 +184,18 @@ export default function CompanyForm(){
           {errorMessage && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-100 rounded">{errorMessage}</div>
           )}
+          {formError && (
+            <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</div>
+          )}
+          {successMessage && (
+            <div className="mb-4 p-3 bg-green-50 text-green-700 border border-green-100 rounded">{successMessage}</div>
+          )}
 
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium">Name</label>
               <input name="name" value={form.name} onChange={onChange} className="mt-1 block w-full border rounded p-2" />
-              {fieldError.name && <div className="text-red-600 text-sm mt-1">{fieldError.name}</div>}
+              {errors.name && <div className="text-red-600 text-sm mt-1">{errors.name}</div>}
             </div>
 
             <div>
@@ -208,7 +224,7 @@ export default function CompanyForm(){
                     ))}
                   </div>
                 )}
-                {providersFieldError && <div className="text-red-600 text-sm mt-1">{providersFieldError}</div>}
+                {errors.provider && <div className="text-red-600 text-sm mt-1">{errors.provider}</div>}
                 {!providersLoading && providers.length === 0 && <div className="text-sm text-gray-600 mt-1">No payment providers available.</div>}
               </div>
 
@@ -218,8 +234,8 @@ export default function CompanyForm(){
             </div>
 
             <div className="flex items-center gap-2">
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded" disabled={saving || countriesLoading || companyLoading}>
-                {saving ? 'Saving...' : 'Save'}
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded" disabled={isSubmitting || countriesLoading || companyLoading}>
+                {isSubmitting ? 'Saving...' : 'Save'}
               </button>
               <button type="button" onClick={()=> navigate('/companies')} className="px-4 py-2 border rounded bg-gray-50">Cancel</button>
             </div>
