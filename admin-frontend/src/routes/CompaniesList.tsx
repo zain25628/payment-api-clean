@@ -4,6 +4,11 @@ import { AdminCompanyListItem } from '../lib/types'
 import Layout from '../components/Layout'
 import { Link, useNavigate } from 'react-router-dom'
 
+function formatNumber(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(Number(value))) return '—'
+  return Number(value).toLocaleString()
+}
+
 export default function CompaniesList(){
   const [companies, setCompanies] = useState<AdminCompanyListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -106,7 +111,7 @@ export default function CompaniesList(){
             <tbody>
               {filtered.map(c => (
                 <tr key={c.id} className="border-t">
-                  <td className="p-2 align-top">{c.id}</td>
+                  <td className="p-2 align-top">{formatNumber(c.id)}</td>
                   <td className="p-2 align-top">{c.name}</td>
                   <td className="p-2 align-top">{c.country_code ?? 'N/A'}</td>
                   <td className="p-2 align-top">
