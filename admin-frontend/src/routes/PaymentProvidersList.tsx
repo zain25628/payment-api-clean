@@ -27,6 +27,67 @@ export default function PaymentProvidersList(){
     loadCountries()
   },[])
 
+  async function load(){
+    setLoading(true)
+    setError(null)
+    try{
+      const data = await fetchPaymentProviders()
+      setProviders(Array.isArray(data) ? data : [])
+    }catch(err:any){
+      setError(err?.message || JSON.stringify(err))
+    }finally{ setLoading(false) }
+  }
+
+  async function loadCountries(){
+    try{
+      const data = await fetchCountries()
+      setCountries(Array.isArray(data) ? data : [])
+    }catch(err:any){
+      // Non-fatal: show in local error state
+      console.warn('Failed to load countries', err)
+    }
+  }
+
+  async function onSubmit(e: React.FormEvent){
+    e.preventDefault()
+    setFormError(null)
+    setFieldErrors({})
+    // Basic client-side validation
+    const errs: typeof fieldErrors = {}
+    if(!code || code.trim().length === 0) errs.code = 'Code is required'
+    if(!name || name.trim().length === 0) errs.name = 'Name is required'
+    if(Object.keys(errs).length){ setFieldErrors(errs); return }
+
+    setIsSubmitting(true)
+    setSaving(true)
+    try{
+      const payload:any = { code: code.trim(), name: name.trim() }
+      if(description) payload.description = description.trim()
+      if(selectedCountryCode) payload.country_code = selectedCountryCode
+
+      await createPaymentProvider(payload)
+      // refresh list and clear form
+      await load()
+      setCode('')
+      setName('')
+      setDescription('')
+      setSelectedCountryCode(undefined)
+    }catch(err:any){
+      // Try to extract field errors if backend provides them
+      const resp = err?.response?.data
+      if(resp && resp?.errors){
+        setFieldErrors(resp.errors)
+      } else if(resp && resp?.detail){
+        setFormError(String(resp.detail))
+      } else {
+        setFormError(err?.message || String(err))
+      }
+    }finally{
+      setIsSubmitting(false)
+      setSaving(false)
+    }
+  }
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto px-4 py-6">
