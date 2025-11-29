@@ -79,9 +79,12 @@ export default function CompaniesList(){
 
   return (
     <Layout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">الشركات (Companies)</h1>
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold">الشركات (Companies)</h1>
+            <p className="text-sm text-gray-600">Manage companies, API keys and basic settings.</p>
+          </div>
           <div className="flex items-center gap-2">
             <input
               value={search}
@@ -96,32 +99,32 @@ export default function CompaniesList(){
         {loading && <div>Loading...</div>}
         {error && <div className="text-red-600">{error}</div>}
 
-        <div className="overflow-x-auto bg-white rounded shadow">
+        <div className="bg-white rounded-xl shadow p-6">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr className="text-left">
-                <th className="p-2">ID</th>
-                <th className="p-2">Name</th>
-                <th className="p-2">Country</th>
-                <th className="p-2">Active</th>
-                <th className="p-2">API Key</th>
-                <th className="p-2">Actions</th>
+                <th className="p-3">ID</th>
+                <th className="p-3">Name</th>
+                <th className="p-3">Country</th>
+                <th className="p-3">Active</th>
+                <th className="p-3">API Key</th>
+                <th className="p-3">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(c => (
-                <tr key={c.id} className="border-t">
-                  <td className="p-2 align-top">{formatNumber(c.id)}</td>
-                  <td className="p-2 align-top">{c.name}</td>
-                  <td className="p-2 align-top">{c.country_code ?? 'N/A'}</td>
-                  <td className="p-2 align-top">
+                <tr key={c.id} className="border-t hover:bg-gray-50">
+                  <td className="p-3 align-top text-right">{formatNumber(c.id)}</td>
+                  <td className="p-3 align-top">{c.name}</td>
+                  <td className="p-3 align-top">{c.country_code ?? 'N/A'}</td>
+                  <td className="p-3 align-top">
                     <span className={`px-2 py-1 rounded text-sm ${c.is_active? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{c.is_active? 'Active':'Disabled'}</span>
                   </td>
-                  <td className="p-2 align-top">
+                  <td className="p-3 align-top">
                     <code className="bg-gray-100 px-2 py-1 rounded mr-2">{partialKey(c.api_key)}</code>
                     <button onClick={()=>copyKey(c.api_key)} className="px-2 py-1 border rounded">Copy</button>
                   </td>
-                  <td className="p-2 align-top flex gap-2">
+                  <td className="p-3 align-top flex gap-2">
                     <Link to={`/companies/${c.id}/wallets`} className="px-3 py-1 bg-gray-100 text-blue-600 rounded">Wallets</Link>
                     <Link to={`/companies/${c.id}`} className="px-3 py-1 bg-gray-200 rounded">Details</Link>
                     <button onClick={()=>handleToggle(c.id)} className="px-3 py-1 bg-gray-200 rounded">Toggle</button>

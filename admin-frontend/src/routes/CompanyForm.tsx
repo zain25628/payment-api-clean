@@ -173,9 +173,10 @@ export default function CompanyForm(){
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto py-6">
-        <div className="bg-white p-6 rounded shadow">
-          <h1 className="text-2xl font-bold mb-4">{isEdit ? 'Edit Company' : 'Create Company'}</h1>
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="bg-white rounded-xl shadow p-6">
+          <h1 className="text-2xl font-bold mb-1">{isEdit ? 'Edit Company' : 'Create Company'}</h1>
+          <p className="text-sm text-gray-600 mb-4">Create or update a company and configure supported payment providers.</p>
 
           {(countriesLoading || companyLoading) && (
             <div className="mb-4 text-sm text-gray-600">Loading...</div>
@@ -191,21 +192,29 @@ export default function CompanyForm(){
             <div className="mb-4 p-3 bg-green-50 text-green-700 border border-green-100 rounded">{successMessage}</div>
           )}
 
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium">Name</label>
-              <input name="name" value={form.name} onChange={onChange} className="mt-1 block w-full border rounded p-2" />
-              {errors.name && <div className="text-red-600 text-sm mt-1">{errors.name}</div>}
+          <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium">Name</label>
+                <input name="name" value={form.name} onChange={onChange} className="mt-1 block w-full border rounded p-2" />
+                {errors.name && <div className="text-red-600 text-sm mt-1">{errors.name}</div>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium">Country</label>
+                <select name="country_code" value={form.country_code} onChange={onChange} className="mt-1 block w-full border rounded p-2" disabled={countriesLoading}>
+                  <option value="">Select country</option>
+                  {countries.map(c=> <option key={c.id} value={c.code}>{c.name}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium">Telegram Default Group ID</label>
+                <input name="telegram_default_group_id" value={form.telegram_default_group_id} onChange={onChange} className="mt-1 block w-full border rounded p-2" />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium">Country</label>
-              <select name="country_code" value={form.country_code} onChange={onChange} className="mt-1 block w-full border rounded p-2" disabled={countriesLoading}>
-                <option value="">Select country</option>
-                {countries.map(c=> <option key={c.id} value={c.code}>{c.name}</option>)}
-              </select>
-            </div>
-
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium">Supported Payment Providers</label>
                 <div className="mt-2 mb-2 flex gap-2">
@@ -215,7 +224,7 @@ export default function CompanyForm(){
                 {providersLoading ? (
                   <div className="text-sm text-gray-600">Loading providers...</div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2 max-h-64 overflow-auto">
                     {providers.map(p => (
                       <label key={p.id} className="inline-flex items-center gap-2">
                         <input type="checkbox" checked={selectedProviderCodes.includes(p.code)} onChange={()=> toggleProvider(p.code)} />
@@ -227,15 +236,11 @@ export default function CompanyForm(){
                 {errors.provider && <div className="text-red-600 text-sm mt-1">{errors.provider}</div>}
                 {!providersLoading && providers.length === 0 && <div className="text-sm text-gray-600 mt-1">No payment providers available.</div>}
               </div>
-
-            <div>
-              <label className="block text-sm font-medium">Telegram Default Group ID</label>
-              <input name="telegram_default_group_id" value={form.telegram_default_group_id} onChange={onChange} className="mt-1 block w-full border rounded p-2" />
             </div>
 
-            <div className="flex items-center gap-2">
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded" disabled={isSubmitting || countriesLoading || companyLoading}>
-                {isSubmitting ? 'Saving...' : 'Save'}
+            <div className="md:col-span-2 flex items-center gap-2">
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded w-full md:w-auto" disabled={isSubmitting || countriesLoading || companyLoading}>
+                {isSubmitting ? 'Saving...' : (isEdit ? 'Update company' : 'Create company')}
               </button>
               <button type="button" onClick={()=> navigate('/companies')} className="px-4 py-2 border rounded bg-gray-50">Cancel</button>
             </div>

@@ -18,7 +18,7 @@ export default function CompanyWallets(){
   if (Number.isNaN(companyId) || companyId <= 0) {
     return (
       <Layout>
-        <div className="max-w-4xl mx-auto py-6">
+        <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">Company Wallets</h1>
             <div>
@@ -139,103 +139,100 @@ export default function CompanyWallets(){
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Company Wallets</h1>
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold">Company Wallets</h1>
+            <p className="text-sm text-gray-600">Create and manage company wallets and view daily usage.</p>
+          </div>
           <div>
             <button onClick={()=> navigate('/companies')} className="px-3 py-1 bg-gray-200 rounded">Back to Companies</button>
           </div>
         </div>
 
-        {/* Create wallet form - minimal fields matching AdminWalletCreate */}
-        <form onSubmit={handleCreate} className="mb-4 p-4 bg-gray-50 rounded">
-          {formError && (
-            <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {formError}
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <input placeholder="Wallet Label" value={walletLabel} onChange={e => setWalletLabel(e.target.value)} className="p-2 border rounded w-full" />
-              {fieldErrors.wallet_label && (
-                <p className="mt-1 text-sm text-red-500">{fieldErrors.wallet_label}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-lg font-medium mb-3">Create Wallet</h2>
+            <form onSubmit={handleCreate} className="space-y-3">
+              {formError && (
+                <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</div>
               )}
-            </div>
-            <div>
-              <input placeholder="Wallet Identifier" value={walletIdentifier} onChange={e => setWalletIdentifier(e.target.value)} className="p-2 border rounded w-full" />
-              {fieldErrors.wallet_identifier && (
-                <p className="mt-1 text-sm text-red-500">{fieldErrors.wallet_identifier}</p>
-              )}
-            </div>
-            <div>
-              <input type="number" placeholder="Daily Limit" value={dailyLimit} onChange={e => setDailyLimit(Number(e.target.value))} className="p-2 border rounded w-full" />
-              {fieldErrors.daily_limit && (
-                <p className="mt-1 text-sm text-red-500">{fieldErrors.daily_limit}</p>
-              )}
-            </div>
-            {/* Channel select populated from company channels */}
-            <div>
-              <select value={channelId as any} onChange={e => setChannelId(e.target.value === '' ? '' : Number(e.target.value))} className="p-2 border rounded w-full">
-                <option value="">Select channel...</option>
-                {channels.map(ch => (
-                  <option key={ch.id} value={ch.id}>
-                    {ch.provider_name ?? ch.provider_code ?? `Channel ${ch.id}`}
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.channel_id && (
-                <p className="mt-1 text-sm text-red-500">{fieldErrors.channel_id}</p>
-              )}
-            </div>
+              <div>
+                <label className="block text-sm font-medium">Wallet Label</label>
+                <input placeholder="Wallet Label" value={walletLabel} onChange={e => setWalletLabel(e.target.value)} className="mt-1 p-2 border rounded w-full" />
+                {fieldErrors.wallet_label && <p className="mt-1 text-sm text-red-500">{fieldErrors.wallet_label}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Wallet Identifier</label>
+                <input placeholder="Wallet Identifier" value={walletIdentifier} onChange={e => setWalletIdentifier(e.target.value)} className="mt-1 p-2 border rounded w-full" />
+                {fieldErrors.wallet_identifier && <p className="mt-1 text-sm text-red-500">{fieldErrors.wallet_identifier}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Daily Limit</label>
+                <input type="number" placeholder="Daily Limit" value={dailyLimit} onChange={e => setDailyLimit(Number(e.target.value))} className="mt-1 p-2 border rounded w-full" />
+                {fieldErrors.daily_limit && <p className="mt-1 text-sm text-red-500">{fieldErrors.daily_limit}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Channel</label>
+                <select value={channelId as any} onChange={e => setChannelId(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 p-2 border rounded w-full">
+                  <option value="">Select channel...</option>
+                  {channels.map(ch => (
+                    <option key={ch.id} value={ch.id}>{ch.provider_name ?? ch.provider_code ?? `Channel ${ch.id}`}</option>
+                  ))}
+                </select>
+                {fieldErrors.channel_id && <p className="mt-1 text-sm text-red-500">{fieldErrors.channel_id}</p>}
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2"><input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} /> Active</label>
+                <button type="submit" disabled={isSubmitting} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50">{isSubmitting ? 'Creating...' : 'Create Wallet'}</button>
+              </div>
+            </form>
           </div>
-          <div className="flex items-center gap-3 mt-3">
-            <label className="flex items-center gap-2"><input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} /> Active</label>
-            <button type="submit" disabled={isSubmitting} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50">
-              {isSubmitting ? 'Creating...' : 'Create Wallet'}
-            </button>
-          </div>
-        </form>
 
-        {error && <div className="mb-4 p-2 bg-red-50 text-red-700 rounded">{error}</div>}
-        {loading ? (
-          <div>Loading...</div>
-        ) : (
-          <div className="overflow-x-auto bg-white rounded shadow">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="text-left">
-                  <th className="p-2">Label</th>
-                  <th className="p-2">Identifier</th>
-                  <th className="p-2">Daily limit</th>
-                  <th className="p-2">Used today</th>
-                  <th className="p-2">Provider</th>
-                  <th className="p-2">Active</th>
-                  <th className="p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wallets.map(w => (
-                  <tr key={w.id} className="border-t">
-                    <td className="p-2 align-top">{w.wallet_label}</td>
-                    <td className="p-2 align-top">{w.wallet_identifier}</td>
-                    <td className="p-2 align-top">{formatNumber(w.daily_limit)}</td>
-                    <td className="p-2 align-top">{formatNumber(w.used_today ?? 0)}</td>
-                    <td className="p-2 align-top">{w.provider_name ?? w.provider_code ?? '—'}</td>
-                    <td className="p-2 align-top">{w.is_active ? 'Yes' : 'No'}</td>
-                    <td className="p-2 align-top">
-                      <button onClick={()=> handleToggle(w.id)} className="px-3 py-1 bg-gray-200 rounded">Toggle Active</button>
-                    </td>
-                  </tr>
-                ))}
-                {wallets.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="p-4 text-center text-gray-600">No wallets found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-lg font-medium mb-3">Wallets</h2>
+            {error && <div className="mb-4 p-2 bg-red-50 text-red-700 rounded">{error}</div>}
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr className="text-left">
+                      <th className="p-3">Label</th>
+                      <th className="p-3">Identifier</th>
+                      <th className="p-3 text-right">Daily limit</th>
+                      <th className="p-3 text-right">Used today</th>
+                      <th className="p-3">Provider</th>
+                      <th className="p-3">Active</th>
+                      <th className="p-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wallets.map(w => (
+                      <tr key={w.id} className="border-t hover:bg-gray-50">
+                        <td className="p-3 align-top">{w.wallet_label}</td>
+                        <td className="p-3 align-top">{w.wallet_identifier}</td>
+                        <td className="p-3 align-top text-right">{formatNumber(w.daily_limit)}</td>
+                        <td className="p-3 align-top text-right">{formatNumber(w.used_today ?? 0)}</td>
+                        <td className="p-3 align-top">{w.provider_name ?? w.provider_code ?? '—'}</td>
+                        <td className="p-3 align-top">{w.is_active ? 'Yes' : 'No'}</td>
+                        <td className="p-3 align-top">
+                          <button onClick={()=> handleToggle(w.id)} className="px-3 py-1 bg-gray-200 rounded">Toggle Active</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {wallets.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="p-4 text-center text-gray-600">No wallets found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </Layout>
   )

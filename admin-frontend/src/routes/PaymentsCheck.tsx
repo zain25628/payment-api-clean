@@ -110,90 +110,93 @@ export const PaymentsCheck: React.FC = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
+    <div className="max-w-5xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-semibold mb-1">Payments — Check & Confirm</h1>
       <p className="text-sm text-gray-600 mb-4">Use this tool to find incoming payments and mark them as used.</p>
 
-      <div className="bg-white shadow rounded p-4 mb-4">
-        <form onSubmit={onCheck} className="grid grid-cols-1 gap-3">
-          {formError && <div className="text-sm text-red-700 bg-red-50 border border-red-100 px-3 py-2 rounded">{formError}</div>}
-          <div>
-            <label className="block text-sm font-medium">API key (X-API-Key)</label>
-            <input type="text" value={apiKey} onChange={e=>setApiKey(e.target.value)} placeholder="dev-channel-key" className="mt-1 block w-full border rounded p-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Order ID</label>
-            <input value={orderId} onChange={e=>setOrderId(e.target.value)} className="mt-1 block w-full border rounded p-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Expected amount</label>
-            <input type="number" value={amount} onChange={e=>setAmount(Number(e.target.value))} className="mt-1 block w-full border rounded p-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Txn ID (optional)</label>
-            <input value={txnId} onChange={e=>setTxnId(e.target.value)} className="mt-1 block w-full border rounded p-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Payer Phone (optional)</label>
-            <input value={payerPhone} onChange={e=>setPayerPhone(e.target.value)} className="mt-1 block w-full border rounded p-2" />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50" disabled={isChecking}>{isChecking? 'Checking...' : 'Check payment'}</button>
-            <button type="button" onClick={() => { setOrderId(`admin-check-${Date.now()}`); setTxnId(''); setPayerPhone(''); setResult(null); setFormError(null); setServerError(null); }} className="px-3 py-2 border rounded bg-gray-50">Reset</button>
-          </div>
-        </form>
-      </div>
-
-      {serverError && (
-        <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{serverError}</div>
-      )}
-
-      {result && (
-        <div className="bg-gray-50 rounded p-4">
-          <div className="flex items-start justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white shadow rounded-xl p-6">
+          <form onSubmit={onCheck} className="grid grid-cols-1 gap-3">
+            {formError && <div className="text-sm text-red-700 bg-red-50 border border-red-100 px-3 py-2 rounded">{formError}</div>}
             <div>
-              <h2 className="text-lg font-medium">Result</h2>
-              <div className="mt-2">
-                <span className={`inline-block px-2 py-1 rounded text-sm ${result.found ? (result.match ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800') : 'bg-gray-100 text-gray-800'}`}>
-                  {result.found ? (result.match ? 'Match' : 'Mismatch') : 'Not found'}
-                </span>
-                {result.reason && <div className="text-sm text-gray-600 mt-1">{result.reason}</div>}
-              </div>
+              <label className="block text-sm font-medium">API key (X-API-Key)</label>
+              <input type="text" value={apiKey} onChange={e=>setApiKey(e.target.value)} placeholder="dev-channel-key" className="mt-1 block w-full border rounded p-2" />
             </div>
-            <div className="text-right">
-              {result.confirm_token && <div className="text-sm text-gray-600">Confirm token available</div>}
+            <div>
+              <label className="block text-sm font-medium">Order ID</label>
+              <input value={orderId} onChange={e=>setOrderId(e.target.value)} className="mt-1 block w-full border rounded p-2" />
             </div>
-          </div>
+            <div>
+              <label className="block text-sm font-medium">Expected amount</label>
+              <input type="number" value={amount} onChange={e=>setAmount(Number(e.target.value))} className="mt-1 block w-full border rounded p-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Txn ID (optional)</label>
+              <input value={txnId} onChange={e=>setTxnId(e.target.value)} className="mt-1 block w-full border rounded p-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Payer Phone (optional)</label>
+              <input value={payerPhone} onChange={e=>setPayerPhone(e.target.value)} className="mt-1 block w-full border rounded p-2" />
+            </div>
 
-          {result.payment && (
-            <div className="mt-4 bg-white p-3 rounded border">
-              <div className="text-sm text-gray-600">Payment</div>
-              <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                <div><strong>ID:</strong> {result.payment.payment_id}</div>
-                <div><strong>Txn:</strong> {result.payment.txn_id ?? '—'}</div>
-                <div><strong>Amount:</strong> {formatCurrency(result.payment.amount)}</div>
-                <div><strong>Currency:</strong> {result.payment.currency ?? '—'}</div>
-                <div><strong>Created:</strong> {formatDate(result.payment.created_at)}</div>
-              </div>
+            <div className="flex items-center gap-3">
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 w-full md:w-auto" disabled={isChecking}>{isChecking? 'Checking...' : 'Check payment'}</button>
+              <button type="button" onClick={() => { setOrderId(`admin-check-${Date.now()}`); setTxnId(''); setPayerPhone(''); setResult(null); setFormError(null); setServerError(null); }} className="px-3 py-2 border rounded bg-gray-50">Reset</button>
             </div>
-          )}
+          </form>
+        </div>
 
-          {result.confirm_token && (
-            <div className="mt-4">
-              <label className="block text-sm font-medium">Confirm token</label>
-              <div className="mt-1 flex gap-2">
-                <input readOnly value={result.confirm_token} className="flex-1 p-2 border rounded bg-white" />
-                <button className="px-3 py-2 border rounded" onClick={() => navigator.clipboard?.writeText(result.confirm_token || '')}>Copy</button>
+        <div className="bg-white shadow rounded-xl p-6">
+          <h2 className="text-lg font-medium">Result</h2>
+          <div className="mt-3">
+            {serverError && <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{serverError}</div>}
+
+            {!result && (
+              <div className="text-sm text-gray-600">No result yet. Fill the form and click Check payment.</div>
+            )}
+
+            {result && (
+              <div>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className={`inline-block px-3 py-1 rounded text-sm ${result.found ? (result.match ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800') : 'bg-gray-100 text-gray-800'}`}>
+                      {result.found ? (result.match ? 'Match' : 'Mismatch') : 'Not found'}
+                    </div>
+                    {result.reason && <div className="text-sm text-gray-600 mt-2">{result.reason}</div>}
+                  </div>
+                </div>
+
+                {result.payment && (
+                  <div className="mt-4 bg-gray-50 p-3 rounded border">
+                    <div className="text-sm text-gray-600">Payment</div>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                      <div><strong>ID:</strong> {result.payment.payment_id}</div>
+                      <div><strong>Txn:</strong> {result.payment.txn_id ?? '—'}</div>
+                      <div><strong>Amount:</strong> {formatCurrency(result.payment.amount)}</div>
+                      <div><strong>Currency:</strong> {result.payment.currency ?? '—'}</div>
+                      <div><strong>Created:</strong> {formatDate(result.payment.created_at)}</div>
+                    </div>
+                  </div>
+                )}
+
+                {result.confirm_token && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium">Confirm token</label>
+                    <div className="mt-1 flex gap-2">
+                      <input readOnly value={result.confirm_token} className="flex-1 p-2 border rounded bg-white" />
+                      <button className="px-3 py-2 border rounded" onClick={() => navigator.clipboard?.writeText(result.confirm_token || '')}>Copy</button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4">
+                  <button disabled={!(result.found && result.match && result.payment && result.confirm_token) || isConfirming} onClick={onConfirm} className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50">{isConfirming? 'Confirming...' : 'Confirm usage'}</button>
+                </div>
               </div>
-            </div>
-          )}
-
-          <div className="mt-4 flex items-center gap-2">
-            <button disabled={!(result.found && result.match && result.payment && result.confirm_token) || isConfirming} onClick={onConfirm} className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50">{isConfirming? 'Confirming...' : 'Confirm usage'}</button>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
