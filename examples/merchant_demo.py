@@ -16,14 +16,17 @@ if not MERCHANT_API_KEY:
     print("Error: MERCHANT_API_KEY environment variable is not set. Set it and retry.")
     sys.exit(1)
 
-BASE_URL = "http://localhost:8000"
+# Allow overriding the base URL via env for flexibility during testing
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+
+# Standard headers sent with each request (ensure header name is exactly X-API-Key)
 HEADERS = {"X-API-Key": MERCHANT_API_KEY, "Content-Type": "application/json"}
 
 
 def check_health():
     """Call GET /health and print status and body."""
     try:
-        r = requests.get(f"{BASE_URL}/health", headers={"X-API-Key": MERCHANT_API_KEY}, timeout=5)
+        r = requests.get(f"{BASE_URL}/health", headers=HEADERS, timeout=5)
         print(f"Health check: status={r.status_code}")
         print(r.text)
     except Exception as exc:
