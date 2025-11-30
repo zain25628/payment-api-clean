@@ -57,6 +57,55 @@ JSON body:
 }
 ```
 
+### Multiple payment buttons per provider
+
+You can implement multiple payment buttons (one per payment provider) using the same `MERCHANT_API_KEY` for all buttons. Each button sends the same `/wallets/request` request but with an optional field `"preferred_payment_method": "slug"` (e.g., `"eand_money"`, `"stripe"`, `"ui-test"`).
+
+**How it works:**
+- If `preferred_payment_method` is provided, the system will **only** select wallets associated with that specific provider.
+- If no matching wallet is found, the endpoint returns `404` with the message: `"No wallet available for this company / amount"`.
+- If `preferred_payment_method` is omitted, the system selects from all available wallets (default behavior).
+
+**Example JSON request:**
+
+```json
+{
+  "amount": 100,
+  "currency": "AED",
+  "txn_id": "ORDER-123",
+  "payer_phone": "+971500000000",
+  "preferred_payment_method": "eand_money"
+}
+```
+
+**Example JavaScript implementation:**
+
+```javascript
+function requestWallet(preferredPaymentMethod) {
+  return fetch("http://localhost:8000/wallets/request", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': '<YOUR_MERCHANT_API_KEY>',
+    },
+    body: JSON.stringify({
+      amount: 100,
+      currency: 'AED',
+      txn_id: 'ORDER-123',
+      payer_phone: '+971500000000',
+      preferred_payment_method: preferredPaymentMethod,
+    }),
+  }).then(r => r.json());
+}
+
+// Usage with buttons:
+// <button onclick="requestWallet('eand_money')">Pay with e& money</button>
+// <button onclick="requestWallet('stripe')">Pay with Stripe</button>
+// <button onclick="requestWallet('ui-test')">Pay with UI Test</button>
+```
+
+**Use case:** This feature is ideal for checkout pages where you want to display separate payment buttons for different providers (e.g., "Pay with e& money", "Pay with Stripe"), while using a single merchant API key.
+
 --------------------------------------------------
 
 If you need the script to run without elevation or using Docker instead, let me know and I can add alternative instructions.
