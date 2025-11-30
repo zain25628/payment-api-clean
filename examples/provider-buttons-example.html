@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Provider-Specific Payment Buttons Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .config {
+      margin-bottom: 30px;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 5px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      box-sizing: border-box;
+    }
+    .buttons {
+      margin: 20px 0;
+    }
+    button {
+      padding: 12px 24px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: white;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    #result {
+      background: #000;
+      color: #0f0;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      min-height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Provider-Specific Payment Buttons Example</h1>
+  
+  <div class="config">
+    <h3>Configuration</h3>
+    <label for="base-url">Base URL:</label>
+    <input type="text" id="base-url" value="http://localhost:8000" placeholder="http://localhost:8000">
+    
+    <label for="api-key">Merchant API Key:</label>
+    <input type="text" id="api-key" value="" placeholder="Your merchant API key">
+  </div>
+
+  <div class="buttons">
+    <h3>Select Payment Provider:</h3>
+    <button onclick="requestWalletForProvider('stripe')">Pay with Stripe</button>
+    <button onclick="requestWalletForProvider('eand_money')">Pay with e& money</button>
+    <button onclick="requestWalletForProvider('ui-test')">Pay with UI Test Provider</button>
+  </div>
+
+  <h3>Response:</h3>
+  <pre id="result">Click a button to request a wallet for a specific provider...</pre>
+
+  <script>
+    function getConfig() {
+      const baseUrl = document.getElementById('base-url').value;
+      const apiKey = document.getElementById('api-key').value;
+      return { baseUrl, apiKey };
+    }
+
+    async function requestWalletForProvider(providerCode) {
+      const { baseUrl, apiKey } = getConfig();
+      const resEl = document.getElementById('result');
+      
+      if (!apiKey) {
+        resEl.textContent = 'Error: Please enter your Merchant API Key in the configuration above.';
+        return;
+      }
+      
+      resEl.textContent = 'Sending request...';
+
+      try {
+        const resp = await fetch(`${baseUrl}/wallets/request/${providerCode}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': apiKey,
+          },
+          body: JSON.stringify({
+            amount: 100,
+            currency: 'AED',
+            txn_id: 'ORDER-123',
+            payer_phone: '+971500000000',
+          }),
+        });
+
+        const text = await resp.text();
+        try {
+          resEl.textContent = `Status: ${resp.status}\n` +
+            JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+          resEl.textContent = `Status: ${resp.status}\n` + text;
+        }
+      } catch (error) {
+        resEl.textContent = `Error: ${error.message}\n\nMake sure the API server is running and the Base URL is correct.`;
+      }
+    }
+  </script>
+</body>
+</html>
