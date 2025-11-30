@@ -205,19 +205,28 @@ export default function CompanyForm(){
 
   // Quick integration snippets as string constants so JSX doesn't try to parse
   // the example code as real TSX/JS objects.
-  const jsSnippet = `fetch("http://localhost:8000/wallets/request", {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-API-Key': '${company?.api_key ?? "<YOUR_MERCHANT_API_KEY>"}',
-  },
-  body: JSON.stringify({
-    amount: 100,
-    currency: 'AED',
-    txn_id: 'ORDER-123',
-    payer_phone: '+971500000000',
-  }),
-}).then(r => r.json()).then(console.log);`;
+  const jsSnippet = `function requestWallet(preferredPaymentMethod) {
+  return fetch("http://localhost:8000/wallets/request", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': '${company?.api_key ?? "<MERCHANT_API_KEY>"}',
+    },
+    body: JSON.stringify({
+      amount: 100,
+      currency: 'AED',
+      txn_id: 'ORDER-123',
+      payer_phone: '+971500000000',
+      // optional: choose provider per button
+      preferred_payment_method: preferredPaymentMethod,
+    }),
+  }).then(r => r.json());
+}
+
+// Example buttons:
+// <button onclick="requestWallet('eand_money')">Pay with e& money</button>
+// <button onclick="requestWallet('stripe')">Pay with Stripe</button>
+// <button onclick="requestWallet('ui-test')">Pay with UI Test Provider</button>`;
 
   const pythonSnippet = `import os
 import requests
@@ -233,6 +242,8 @@ resp = requests.post(
         "currency": "AED",
         "txn_id": "ORDER-123",
         "payer_phone": "+971500000000",
+        # optional: pass preferred_payment_method to restrict wallet selection
+        # "preferred_payment_method": "eand_money",
     },
 )
 print(resp.status_code, resp.json())`;
