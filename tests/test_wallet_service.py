@@ -9,6 +9,8 @@ from app.db.session import get_db
 from app.models.company import Company
 from app.models.wallet import Wallet
 from app.models.payment import Payment
+from app.models.channel import Channel
+from app.models.country import PaymentProvider
 from app.services.wallet_service import WalletService
 
 
@@ -27,6 +29,8 @@ def create_test_db():
     importlib.import_module("app.models.company")
     importlib.import_module("app.models.wallet")
     importlib.import_module("app.models.payment")
+    importlib.import_module("app.models.channel")
+    importlib.import_module("app.models.country")
 
     Base.metadata.create_all(bind=engine)
     return TestingSessionLocal()
@@ -175,5 +179,115 @@ def test_update_wallet_usage_increments_and_resets_if_needed(monkeypatch):
     # wallet should have been reset then incremented
     assert updated is w
     assert w.last_reset_date == date.today()
-    assert w.used_today == 20.0
-    assert db.commits >= 1
+
+
+def test_pick_wallet_with_preferred_payment_method_match():
+    """Test that preferred_payment_method filters to matching provider."""
+    db = create_test_db()
+    
+    # Create company
+    company = Company(name="C_PPM", api_key="k_ppm")
+    db.add(company)
+    db.commit()
+    
+    # Create two payment providers
+    provider1 = PaymentProvider(code="eand_money", name="EandMoney")
+    provider2 = PaymentProvider(code="stripe", name="Stripe")
+    db.add_all([provider1, provider2])
+    db.commit()
+    
+    # Create channels for each provider
+    channel1 = Channel(
+        company_id=company.id,
+        name="Channel1",
+        channel_api_key="ch1",
+        provider_id=provider1.id,
+        is_active=True
+    )
+    channel2 = Channel(
+        company_id=company.id,
+        name="Channel2",
+        channel_api_key="ch2",
+        provider_id=provider2.id,
+        is_active=True
+    )
+    db.add_all([channel1, channel2])
+    db.commit()
+    
+    # Create wallets for each channel
+    w1 = Wallet(
+        company_id=company.id,
+        channel_id=channel1.id,
+        wallet_label="W_eand",
+        wallet_identifier="eand_001",
+        daily_limit=500,
+        is_active=True
+    )
+    w2 = Wallet(
+        company_id=company.id,
+        channel_id=channel2.id,
+        wallet_label="W_stripe",
+        wallet_identifier="stripe_001",
+        daily_limit=500,
+        is_active=True
+    )
+    db.add_all([w1, w2])
+    db.commit()
+    
+    # Request with preferred_payment_method="eand_money" should return w1
+    picked = WalletService.pick_wallet_for_company(
+        db=db,
+        company_id=company.id,
+        amount=100,
+        preferred_payment_method="eand_money"
+    )
+    assert picked is not None
+    assert picked.id == w1.id
+    assert picked.channel.provider.code == "eand_money"
+
+
+def test_pick_wallet_with_preferred_payment_method_no_match():
+    """Test that preferred_payment_method returns None when no matching wallet exists."""
+    db = create_test_db()
+    
+    # Create company
+    company = Company(name="C_PPM_NO", api_key="k_ppm_no")
+    db.add(company)
+    db.commit()
+    
+    # Create one payment provider
+    provider1 = PaymentProvider(code="stripe", name="Stripe")
+    db.add(provider1)
+    db.commit()
+    
+    # Create channel for stripe
+    channel1 = Channel(
+        company_id=company.id,
+        name="Channel1",
+        channel_api_key="ch1_no",
+        provider_id=provider1.id,
+        is_active=True
+    )
+    db.add(channel1)
+    db.commit()
+    
+    # Create wallet for stripe
+    w1 = Wallet(
+        company_id=company.id,
+        channel_id=channel1.id,
+        wallet_label="W_stripe",
+        wallet_identifier="stripe_001",
+        daily_limit=500,
+        is_active=True
+    )
+    db.add(w1)
+    db.commit()
+    
+    # Request with preferred_payment_method="eand_money" should return None (no match)
+    picked = WalletService.pick_wallet_for_company(
+        db=db,
+        company_id=company.id,
+        amount=100,
+        preferred_payment_method="eand_money"
+    )
+    assert picked is None

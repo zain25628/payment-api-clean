@@ -86,6 +86,7 @@ class WalletService:
         db: Session,
         company_id: int,
         amount: float,
+        preferred_payment_method: Optional[str] = None,
     ) -> Optional[Wallet]:
         """
         Choose an appropriate wallet for a company and amount.
@@ -96,10 +97,21 @@ class WalletService:
           Payment.amount for payments created today for that wallet.
         - If total_today + amount > daily_limit -> wallet is not eligible.
         - If multiple eligible, pick the one with smallest total_today.
+        - If preferred_payment_method is set, only wallets associated with that
+          payment provider (by code) are considered.
         """
         wallets: List[Wallet] = wallet_repository.get_company_active_wallets(db, company_id)
         if not wallets:
             return None
+
+        # Filter by preferred payment method if specified
+        if preferred_payment_method is not None:
+            wallets = [
+                w for w in wallets
+                if w.channel and w.channel.provider and w.channel.provider.code == preferred_payment_method
+            ]
+            if not wallets:
+                return None
 
         today = datetime.utcnow().date()
         candidates = []

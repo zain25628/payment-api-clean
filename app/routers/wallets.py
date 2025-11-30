@@ -42,10 +42,20 @@ def request_wallet(
     The endpoint depends on `X-API-Key` (resolved by `get_current_company`) to
     identify the company. The actual selection logic is delegated to
     `find_available_wallet` and is not changed here.
+
+    Optional parameter:
+        preferred_payment_method (optional string): provider code (e.g. "eand_money",
+        "stripe", "ui-test"). When set, wallet selection is restricted to this provider.
     """
     amount = float(payload.amount)
+    preferred_payment_method = payload.preferred_payment_method
 
-    wallet = WalletService.pick_wallet_for_company(db=db, company_id=company.id, amount=amount)
+    wallet = WalletService.pick_wallet_for_company(
+        db=db,
+        company_id=company.id,
+        amount=amount,
+        preferred_payment_method=preferred_payment_method,
+    )
     if wallet is None:
         raise HTTPException(
             status_code=404,
