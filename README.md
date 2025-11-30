@@ -106,6 +106,49 @@ function requestWallet(preferredPaymentMethod) {
 
 **Use case:** This feature is ideal for checkout pages where you want to display separate payment buttons for different providers (e.g., "Pay with e& money", "Pay with Stripe"), while using a single merchant API key.
 
+### Provider-specific endpoints
+
+In addition to using `preferred_payment_method` in the request body, you can also use **provider-specific endpoints** for even cleaner integration:
+
+- **`POST /wallets/request`** — Automatic selection from all available wallets (default behavior)
+- **`POST /wallets/request/{provider_code}`** — Strict selection for a specific payment provider only
+
+**Examples:**
+```
+POST /wallets/request/stripe
+POST /wallets/request/eand_money
+POST /wallets/request/ui-test
+```
+
+**How it works:**
+- The `{provider_code}` in the URL path forces wallet selection to that specific provider.
+- If no wallet is available for the specified provider, the endpoint returns `404` with `"No wallet available for this company / amount"`.
+- The request body is the same as the standard `/wallets/request` endpoint (no need to include `preferred_payment_method` in the JSON).
+
+**Example usage:**
+```javascript
+// Direct fetch to provider-specific endpoint
+fetch("https://your-gateway.example.com/wallets/request/stripe", {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': '<YOUR_MERCHANT_API_KEY>',
+  },
+  body: JSON.stringify({
+    amount: 100,
+    currency: 'AED',
+    txn_id: 'ORDER-123',
+    payer_phone: '+971500000000',
+  }),
+}).then(r => r.json());
+```
+
+**Comparison:**
+- **Body-based**: `POST /wallets/request` with `"preferred_payment_method": "stripe"` in JSON
+- **Path-based**: `POST /wallets/request/stripe` (cleaner, more RESTful)
+
+Both approaches achieve the same result — choose whichever fits your integration style better.
+
 --------------------------------------------------
 
 If you need the script to run without elevation or using Docker instead, let me know and I can add alternative instructions.

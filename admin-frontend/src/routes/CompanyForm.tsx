@@ -226,7 +226,13 @@ export default function CompanyForm(){
 // Example buttons:
 // <button onclick="requestWallet('eand_money')">Pay with e& money</button>
 // <button onclick="requestWallet('stripe')">Pay with Stripe</button>
-// <button onclick="requestWallet('ui-test')">Pay with UI Test Provider</button>`;
+// <button onclick="requestWallet('ui-test')">Pay with UI Test Provider</button>
+
+// Alternative: provider-specific endpoints (one button per provider)
+// fetch("http://localhost:8000/wallets/request/stripe", { method: 'POST', headers: {...}, body: JSON.stringify({amount: 100, ...}) })
+// fetch("http://localhost:8000/wallets/request/eand_money", { method: 'POST', headers: {...}, body: JSON.stringify({amount: 100, ...}) })
+// fetch("http://localhost:8000/wallets/request/ui-test", { method: 'POST', headers: {...}, body: JSON.stringify({amount: 100, ...}) })
+`;
 
   const pythonSnippet = `import os
 import requests

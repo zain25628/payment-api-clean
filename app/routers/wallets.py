@@ -76,3 +76,64 @@ def request_wallet(
         channel_api_key=channel.channel_api_key,
         channel_id=channel.id,
     )
+
+
+@router.post("/wallets/request/{provider_code}", response_model=WalletResponse)
+def request_wallet_for_provider(
+    provider_code: str,
+    payload: WalletRequest,
+    db: Session = Depends(get_db),
+    company: Company = Depends(get_current_company),
+):
+    """Select an available wallet for a specific payment provider.
+
+    Same as /wallets/request but forces wallet selection to a specific provider.
+
+    Examples:
+        POST /wallets/request/stripe
+        POST /wallets/request/eand_money
+        POST /wallets/request/ui-test
+
+    Args:
+        provider_code: Payment provider code (e.g., "stripe", "eand_money", "ui-test")
+        payload: Wallet request payload (amount, currency, txn_id, payer_phone)
+        db: Database session
+        company: Current authenticated company
+
+    Returns:
+        WalletResponse with wallet details
+
+    Raises:
+        HTTPException 404: No wallet available for this provider/amount
+        HTTPException 400: Wallet channel is not active
+    """
+    amount = float(payload.amount)
+
+    # Force provider selection by passing provider_code as preferred_payment_method
+    wallet = WalletService.pick_wallet_for_company(
+        db=db,
+        company_id=company.id,
+        amount=amount,
+        preferred_payment_method=provider_code,
+    )
+    
+    if wallet is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No wallet available for this company / amount",
+        )
+
+    channel = wallet.channel
+    if channel is None or not channel.is_active:
+        raise HTTPException(
+            status_code=400,
+            detail="Wallet channel is not available",
+        )
+
+    return WalletResponse(
+        wallet_id=wallet.id,
+        wallet_identifier=wallet.wallet_identifier,
+        wallet_label=wallet.wallet_label,
+        channel_api_key=channel.channel_api_key,
+        channel_id=channel.id,
+    )
