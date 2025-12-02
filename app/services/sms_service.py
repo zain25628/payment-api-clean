@@ -32,9 +32,13 @@ def parse_incoming_sms(payload: Dict) -> Dict:
     Returns a dict with keys: `payer_phone`, `receiver_phone`, `raw_message`,
     `amount` (float), `currency` (default 'USD'), `txn_id`.
     """
+    # Ensure receiver_phone falls back to payer_phone when absent to
+    # avoid NOT NULL DB constraint issues in legacy flows.
+    payer = payload.get("payer_phone")
+    receiver = payload.get("receiver_phone") or payer
     return {
-        "payer_phone": payload.get("payer_phone"),
-        "receiver_phone": payload.get("receiver_phone"),
+        "payer_phone": payer,
+        "receiver_phone": receiver,
         "raw_message": payload.get("raw_message"),
         "amount": float(payload.get("amount", 0)),
         "currency": payload.get("currency", "USD"),

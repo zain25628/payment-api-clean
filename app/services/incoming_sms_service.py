@@ -55,6 +55,11 @@ class IncomingSmsService:
         amount = data.amount if data.amount is not None else 0
         currency = data.currency or "AED"
 
+        # Ensure receiver_phone is not NULL at DB level: fall back to payer_phone
+        # Some DB migrations enforce NOT NULL for receiver_phone; use payer_phone
+        # as a sensible default when receiver is absent in payload.
+        receiver_phone = data.receiver_phone if getattr(data, "receiver_phone", None) is not None else getattr(data, "payer_phone", None)
+
         # 4) Create Payment
         payment = Payment(
             company_id=company.id,
@@ -64,7 +69,7 @@ class IncomingSmsService:
             currency=currency,
             txn_id=data.txn_id,
             payer_phone=data.payer_phone,
-            receiver_phone=data.receiver_phone,
+            receiver_phone=receiver_phone,
             raw_message=data.raw_message,
             # status: "new" will be defaulted by model (__init__ / Column default)
         )

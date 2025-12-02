@@ -43,22 +43,38 @@ async def receive_incoming_sms(
 
         return IncomingSmsStored(payment_id=payment.id, status=payment.status)
 
-    # Legacy path: basic validation to preserve previous 422 semantics
+    # Legacy path: validate X-API-Key header
+    api_key = request.headers.get("X-API-Key")
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-API-Key header"
+        )
+
+    import app.services.sms_service as sms_service
+    channel = sms_service.validate_channel_api_key(db, api_key)
+    if not channel:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or inactive channel API key"
+        )
+
+    # Validate payload and parse
     if "raw_message" not in payload:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="field required: raw_message")
-    if "amount" in payload and payload["amount"] is not None:
-        try:
-            float(payload["amount"])
-        except Exception:
-            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="invalid amount")
 
-    # delegate to sms_service.store_payment (kept for compatibility)
-    try:
-        import app.services.sms_service as sms_service
+    parsed_data = sms_service.parse_incoming_sms(payload)
 
-        payment = sms_service.store_payment(db, None, None, payload)
-        # legacy behavior returns only payment_id with 200
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"payment_id": payment.id})
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    # Store using REAL channel & company IDs
+    payment = sms_service.store_payment(
+        db,
+        channel.id,
+        channel.company_id,
+        parsed_data
+    )
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"payment_id": payment.id}
+    )
 
