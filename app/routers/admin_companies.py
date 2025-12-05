@@ -14,7 +14,7 @@ from app.schemas.admin_company import (
 )
 from app.services.admin_company_service import AdminCompanyService
 from app.services.admin_onboarding_service import AdminOnboardingService
-from fastapi.responses import JSONResponse
+from app.schemas.admin_onboarding import AdminOnboardingGenerateResponse
 from pathlib import Path
 
 
@@ -155,28 +155,9 @@ def toggle_company_active(
 
 
 
-@router.post("/{company_id}/onboarding-pdf")
-def generate_onboarding_pdf(company_id: int, db: Session = Depends(get_db)):
-    """Generate onboarding HTML/PDF for a company and return paths/URLs.
-
-    Note: In production the directory returned should be mounted as a static URL
-    (e.g. /static/onboarding/). This endpoint returns the filesystem path and a
-    suggested `download_url` that should be adjusted by your deployment.
-    """
-    company, html_path, pdf_path = AdminOnboardingService.generate_company_onboarding_pdf(db, company_id)
-
-    # Suggest a download URL relative to /static/onboarding/ (deployment must serve this)
-    result = {"company_id": company.id}
-    if pdf_path is not None and Path(pdf_path).exists():
-        result.update({
-            "pdf_path": str(pdf_path),
-            "download_url": f"/static/onboarding/{Path(pdf_path).name}",
-        })
-    else:
-        result.update({
-            "html_path": str(html_path),
-            "download_url": None,
-            "note": "PDF not available (WeasyPrint missing); use HTML to print to PDF.",
-        })
-
-    return JSONResponse(content=result)
+@router.post("/{company_id}/onboarding-pdf", response_model=AdminOnboardingGenerateResponse)
+def generate_onboarding_pdf(
+    company_id: int,
+    db: Session = Depends(get_db),
+):
+    return AdminOnboardingService.generate_company_onboarding_pdf(db, company_id)

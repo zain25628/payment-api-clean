@@ -152,6 +152,9 @@ from typing import Optional
 
 import app.repositories.payment_repository as payment_repository
 from app.services.wallet_service import update_wallet_usage
+import logging
+
+logger = logging.getLogger("payment_gateway")
 
 
 def create_payment_from_sms(db: Session, payment_data: dict) -> Payment:
@@ -168,7 +171,16 @@ def create_payment_from_sms(db: Session, payment_data: dict) -> Payment:
         This is a thin wrapper around SQLAlchemy model construction and session
         commit/refresh; it intentionally does not apply business rules.
     """
-    payment = Payment(**payment_data)
+    # Filter out any keys that are not actual Payment columns to avoid
+    # SQLAlchemy TypeError when unknown kwargs are passed to the model.
+    allowed_fields = {c.key for c in Payment.__table__.columns}
+    filtered_data = {k: v for k, v in payment_data.items() if k in allowed_fields}
+
+    extra_keys = set(payment_data.keys()) - allowed_fields
+    if extra_keys:
+        logger.debug("Dropping extra payment fields: %s", sorted(extra_keys))
+
+    payment = Payment(**filtered_data)
     # Delegate persistence to the repository
     return payment_repository.create(db, payment)
 

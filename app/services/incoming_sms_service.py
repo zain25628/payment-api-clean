@@ -27,12 +27,10 @@ class IncomingSmsService:
         - Optionally links a Wallet by receiver_phone if available.
         - Creates a Payment with status "new" (default).
         """
-        # 1) Find channel by api key
-        channel: Optional[Channel] = (
-            db.query(Channel)
-            .filter(Channel.channel_api_key == data.channel_api_key)
-            .first()
-        )
+        # 1) Find channel by api key (use shared validator to trim and check active)
+        import app.services.sms_service as sms_service
+
+        channel: Optional[Channel] = sms_service.validate_channel_api_key(db, getattr(data, "channel_api_key", None))
         if channel is None:
             # We intentionally raise a ValueError here; the router layer can translate it to HTTP 400/401.
             raise ValueError("Invalid channel_api_key")

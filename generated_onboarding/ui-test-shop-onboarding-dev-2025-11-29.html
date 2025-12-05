@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UI Test Shop – Onboarding</title>
+  <style>
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    color: #111827;
+    line-height: 1.5;
+    margin: 2rem;
+}
+h1, h2, h3 {
+    color: #111827;
+}
+code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+pre {
+    background: #0b1020;
+    color: #e5e7eb;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    overflow-x: auto;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+}
+table, th, td {
+    border: 1px solid #e5e7eb;
+}
+th, td {
+    padding: 0.5rem;
+    text-align: left;
+}
+</style>
+</head>
+<body>
+<h1>Merchant Onboarding Guide</h1>
+<blockquote>
+<p>This document is a generic template for merchants integrating with the Payment Gateway.
+Fill the placeholders with the values provided in your Admin Dashboard or using the
+<code>generate_onboarding_pdf.py</code> helper which replaces the placeholders automatically.</p>
+</blockquote>
+<hr />
+<h2>UI Test Shop</h2>
+<p><strong>Environment:</strong> <code>dev</code></p>
+<hr />
+<h2>Credentials &amp; Environment</h2>
+<h3>API key</h3>
+<p>Keep this key secret. Store it in an environment variable (for example: <code>MERCHANT_API_KEY</code>).</p>
+<pre><code>4F_QN-5jrAypRbYkinDN9Gi2EHAovBB5UhUNrt890uI
+</code></pre>
+<h3>Base URL</h3>
+<p>Use this base URL to call the merchant API (replace <code>http://localhost:8000</code> when running in a different environment):</p>
+<pre><code>http://localhost:8000
+</code></pre>
+<hr />
+<h2>Quick checklist</h2>
+<p>1) Plug the API key into your server environment (e.g. <code>MERCHANT_API_KEY</code>).
+2) Call <code>POST http://localhost:8000/wallets/request</code> to obtain a payment destination for an order.
+3) Display instructions to the customer and wait for payment to arrive.
+4) Optionally call <code>POST http://localhost:8000/payments/check</code> and then <code>POST http://localhost:8000/payments/confirm</code>.</p>
+<p>If <code>dev</code> is not <code>production</code>, this document is intended for development/staging purposes only.</p>
+<hr />
+<h2>JavaScript (Node / backend) example</h2>
+<pre><code class="language-js">const BASE_URL = process.env.PAYMENT_GATEWAY_BASE_URL || &quot;http://localhost:8000&quot;;
+const MERCHANT_API_KEY = process.env.MERCHANT_API_KEY || &quot;4F_QN-5jrAypRbYkinDN9Gi2EHAovBB5UhUNrt890uI&quot;;
+
+async function requestWallet() {
+  const res = await fetch(`${BASE_URL}/wallets/request`, {
+    method: &quot;POST&quot;,
+    headers: {
+      &quot;Content-Type&quot;: &quot;application/json&quot;,
+      &quot;X-API-Key&quot;: MERCHANT_API_KEY,
+    },
+    body: JSON.stringify({
+      amount: 100,
+      currency: &quot;AED&quot;,
+      txn_id: &quot;ORDER-123&quot;,
+      payer_phone: &quot;+971500000000&quot;,
+    }),
+  });
+
+  const data = await res.json();
+  console.log(&quot;Wallet request result:&quot;, data);
+}
+
+requestWallet().catch(console.error);
+</code></pre>
+<h2>Python (requests) example</h2>
+<pre><code class="language-py">import os
+import requests
+
+BASE_URL = os.getenv(&quot;PAYMENT_GATEWAY_BASE_URL&quot;, &quot;http://localhost:8000&quot;)
+API_KEY = os.getenv(&quot;MERCHANT_API_KEY&quot;, &quot;4F_QN-5jrAypRbYkinDN9Gi2EHAovBB5UhUNrt890uI&quot;)
+
+resp = requests.post(
+    f&quot;{BASE_URL}/wallets/request&quot;,
+    headers={&quot;X-API-Key&quot;: API_KEY},
+    json={
+        &quot;amount&quot;: 100,
+        &quot;currency&quot;: &quot;AED&quot;,
+        &quot;txn_id&quot;: &quot;ORDER-123&quot;,
+        &quot;payer_phone&quot;: &quot;+971500000000&quot;,
+    },
+)
+print(resp.status_code, resp.json())
+</code></pre>
+<hr />
+<h2>Notes</h2>
+<ul>
+<li>This file is a template — it intentionally contains placeholders (the <code>{{...}}</code> tokens).</li>
+<li>Use <code>generate_onboarding_pdf.py</code> to substitute the placeholders and emit a PDF.</li>
+</ul>
+<hr />
+<h2>1. Overview</h2>
+<p>Welcome! This guide explains how to integrate your system with the Payment Gateway
+using a simple, step-by-step flow:</p>
+<ol>
+<li>Request a wallet / payment destination.</li>
+<li>Receive a payment from your customer.</li>
+<li>Let the gateway match the payment.</li>
+<li>(Optionally) Confirm the payment and mark it as used.</li>
+</ol>
+<p>You will mainly talk to the <strong>public merchant API</strong> using your <strong>merchant API key</strong>.</p>
+<hr />
+<h2>2. Credentials &amp; Environment</h2>
+<h3>2.1. API key</h3>
+<p>Your merchant API key is visible in the Admin Dashboard under <strong>Companies → Edit Company</strong>.</p>
+<ul>
+<li>Keep this key <strong>secret</strong>.</li>
+<li>Store it in an environment variable (for example: <code>MERCHANT_API_KEY</code>).</li>
+<li>Do <strong>not</strong> hard-code it in your frontend code shipped to browsers.</li>
+</ul>
+<p>Example (.env):</p>
+<pre><code class="language-env">MERCHANT_API_KEY=&lt;YOUR_MERCHANT_API_KEY&gt;
+PAYMENT_GATEWAY_BASE_URL=&lt;BASE_URL&gt;
+</code></pre>
+<h3>2.2. Base URL</h3>
+<p>You will call the API using a base URL. Typical examples:</p>
+<p>Sandbox / Dev: https://sandbox.your-gateway.com</p>
+<p>Production: https://api.your-gateway.com</p>
+<p>In local development (if you run the gateway yourself):</p>
+<p>http://localhost:8000</p>
+<p>We will refer to this as <BASE_URL> in the rest of this document.</p>
+<h2>3. Core Flow</h2>
+<h3>Step 1 – Request a wallet</h3>
+<p>You first request a wallet / payment destination for a specific order.</p>
+<p><strong>Endpoint</strong></p>
+<p>POST /wallets/request</p>
+<p><strong>Headers</strong></p>
+<p>X-API-Key: <YOUR_MERCHANT_API_KEY></p>
+<p>Content-Type: application/json</p>
+<p><strong>Request body (example)</strong></p>
+<pre><code class="language-json">{
+  &quot;amount&quot;: 10,
+  &quot;currency&quot;: &quot;AED&quot;,
+  &quot;txn_id&quot;: &quot;ORDER-123&quot;,
+  &quot;payer_phone&quot;: &quot;+971500000000&quot;
+}
+</code></pre>
+<p><strong>Response (simplified example)</strong></p>
+<pre><code class="language-json">{
+  &quot;wallet_identifier&quot;: &quot;WALLET-DEV-001&quot;,
+  &quot;wallet_label&quot;: &quot;Dev Test Wallet&quot;,
+  &quot;channel_id&quot;: 1,
+  &quot;channel_api_key&quot;: &quot;********&quot;,
+  &quot;wallet_id&quot;: 1
+}
+</code></pre>
+<p>You typically use this response to show payment instructions to your customer
+(e.g. which account / wallet to pay to).</p>
+<h3>Step 2 – Customer pays</h3>
+<p>This step is done by your customer through their banking / wallet app.
+From the gateway’s perspective, payments arrive asynchronously and will be linked later.</p>
+<p>You don’t need to call any API in this step.</p>
+<h3>Step 3 – Check payment (optional from your backend)</h3>
+<p>You can ask the gateway to check if a payment matching your order has been seen.</p>
+<p><strong>Endpoint</strong></p>
+<p>POST /payments/check</p>
+<p><strong>Headers</strong></p>
+<p>X-API-Key: <YOUR_MERCHANT_API_KEY></p>
+<p>Content-Type: application/json</p>
+<p><strong>Request body (example)</strong></p>
+<pre><code class="language-json">{
+  &quot;order_id&quot;: &quot;ORDER-123&quot;,
+  &quot;expected_amount&quot;: 10,
+  &quot;txn_id&quot;: &quot;ORDER-123&quot;,
+  &quot;payer_phone&quot;: &quot;+971500000000&quot;
+}
+</code></pre>
+<p><strong>Response (simplified)</strong></p>
+<pre><code class="language-json">{
+  &quot;found&quot;: true,
+  &quot;match&quot;: true,
+  &quot;reason&quot;: null,
+  &quot;confirm_token&quot;: &quot;SOME-CONFIRM-TOKEN&quot;,
+  &quot;order_id&quot;: &quot;ORDER-123&quot;,
+  &quot;payment&quot;: {
+    &quot;payment_id&quot;: 6,
+    &quot;txn_id&quot;: &quot;ORDER-123&quot;,
+    &quot;amount&quot;: 10,
+    &quot;currency&quot;: &quot;AED&quot;,
+    &quot;created_at&quot;: &quot;2025-11-29T12:24:02.710524&quot;
+  }
+}
+</code></pre>
+<p>If found and match are true, you may confirm the payment (next step).</p>
+<p>Keep confirm_token safe; it’s required to mark the payment as used.</p>
+<h3>Step 4 – Confirm payment (mark as used)</h3>
+<p>Once you are satisfied that the payment is genuine and should be consumed,
+you can mark it as used.</p>
+<p><strong>Endpoint</strong></p>
+<p>POST /payments/confirm</p>
+<p><strong>Headers</strong></p>
+<p>X-API-Key: <YOUR_MERCHANT_API_KEY></p>
+<p>Content-Type: application/json</p>
+<p><strong>Request body</strong></p>
+<pre><code class="language-json">{
+  &quot;payment_id&quot;: 6,
+  &quot;confirm_token&quot;: &quot;SOME-CONFIRM-TOKEN&quot;
+}
+</code></pre>
+<p><strong>Response</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;already_used&quot;: false,
+  &quot;payment_id&quot;: 6,
+  &quot;status&quot;: &quot;used&quot;
+}
+</code></pre>
+<p>Subsequent checks for the same payment will usually show that it has been used.</p>
+<h2>4. Code Examples</h2>
+<h3>4.1. JavaScript (Node / backend)</h3>
+<pre><code class="language-js">const BASE_URL = process.env.PAYMENT_GATEWAY_BASE_URL || &quot;&lt;BASE_URL&gt;&quot;;
+const MERCHANT_API_KEY = process.env.MERCHANT_API_KEY || &quot;&lt;YOUR_MERCHANT_API_KEY&gt;&quot;;
+
+async function requestWallet() {
+  const res = await fetch(`${BASE_URL}/wallets/request`, {
+    method: &quot;POST&quot;,
+    headers: {
+      &quot;Content-Type&quot;: &quot;application/json&quot;,
+      &quot;X-API-Key&quot;: MERCHANT_API_KEY,
+    },
+    body: JSON.stringify({
+      amount: 10,
+      currency: &quot;AED&quot;,
+      txn_id: &quot;ORDER-123&quot;,
+      payer_phone: &quot;+971500000000&quot;,
+    }),
+  });
+
+  const data = await res.json();
+  console.log(&quot;Wallet request result:&quot;, data);
+}
+
+requestWallet().catch(console.error);
+</code></pre>
+<h3>4.2. Python</h3>
+<pre><code class="language-python">import os
+import requests
+
+BASE_URL = os.getenv(&quot;PAYMENT_GATEWAY_BASE_URL&quot;, &quot;&lt;BASE_URL&gt;&quot;)
+MERCHANT_API_KEY = os.getenv(&quot;MERCHANT_API_KEY&quot;, &quot;&lt;YOUR_MERCHANT_API_KEY&gt;&quot;)
+
+payload = {
+    &quot;amount&quot;: 10,
+    &quot;currency&quot;: &quot;AED&quot;,
+    &quot;txn_id&quot;: &quot;ORDER-123&quot;,
+    &quot;payer_phone&quot;: &quot;+971500000000&quot;,
+}
+
+resp = requests.post(
+    f&quot;{BASE_URL}/wallets/request&quot;,
+    json=payload,
+    headers={&quot;X-API-Key&quot;: MERCHANT_API_KEY},
+    timeout=10,
+)
+print(resp.status_code, resp.json())
+</code></pre>
+<h3>4.3. curl (for quick testing)</h3>
+<pre><code class="language-bash">curl -X POST &quot;&lt;BASE_URL&gt;/wallets/request&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;X-API-Key: &lt;YOUR_MERCHANT_API_KEY&gt;&quot; \
+  -d '{
+    &quot;amount&quot;: 10,
+    &quot;currency&quot;: &quot;AED&quot;,
+    &quot;txn_id&quot;: &quot;ORDER-123&quot;,
+    &quot;payer_phone&quot;: &quot;+971500000000&quot;
+  }'
+</code></pre>
+<h2>5. Admin Tools (optional)</h2>
+<p>The Admin Dashboard provides:</p>
+<ul>
+<li>Payments — Check &amp; Confirm: Check if a payment has been seen and confirm it.</li>
+<li>Payments history: Search and review payments by amount, status, date, or transaction ID.</li>
+</ul>
+<p>These tools are primarily for operations and support, not for your public integration.</p>
+<h2>6. Support</h2>
+<p>If you have any questions about this integration or need help debugging a payment:</p>
+<p>Contact the support team with:</p>
+<ul>
+<li>Your company name.</li>
+<li>The transaction ID (txn_id) and amount.</li>
+<li>Approximate payment time and currency.</li>
+</ul>
+<p>We’re happy to help you get your integration running smoothly.</p>
+</body>
+</html>

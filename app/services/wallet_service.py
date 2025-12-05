@@ -72,8 +72,26 @@ def update_wallet_usage(db: Session, wallet_id: int, amount: float) -> Optional[
     wallet = wallet_repository.get_by_id(db, wallet_id)
     if wallet:
         reset_wallet_if_needed(wallet, db)
-        wallet.used_today += amount
-        db.add(wallet)
+        
+        # Atomic update to prevent race conditions
+        result = db.query(Wallet).filter(
+            Wallet.id == wallet_id,
+            Wallet.used_today + amount <= Wallet.daily_limit
+        ).update(
+            {"used_today": Wallet.used_today + amount},
+            synchronize_session=False
+        )
+        
+        if result == 0:
+            # Check if it failed because of limit or missing (we know it exists from get_by_id)
+            # Since we just fetched it, it's likely the limit.
+            # Refresh to see current state
+            db.refresh(wallet)
+            if wallet.used_today + amount > wallet.daily_limit:
+                raise ValueError("Daily limit exceeded")
+            # If result is 0 but limit not exceeded, something else happened (deleted?), return None
+            return None
+
         db.commit()
         db.refresh(wallet)
         return wallet

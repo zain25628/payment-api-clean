@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+- One-click merchant onboarding: default channel + default wallet provisioning on company create, and quick integration snippets in the Admin UI.
+
 
 
 ## [0.1.1] - 2025-11-29

@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 from app.services.admin_company_service import AdminCompanyService
 from app.config import settings
 from app.models.company import Company
+from app.schemas.admin_onboarding import AdminOnboardingGenerateResponse
 
 try:
     # import the generate_onboarding helper from repo root
@@ -15,7 +16,7 @@ except Exception:
 
 class AdminOnboardingService:
     @staticmethod
-    def generate_company_onboarding_pdf(db: Session, company_id: int) -> tuple:
+    def generate_company_onboarding_pdf(db: Session, company_id: int) -> AdminOnboardingGenerateResponse:
         # use existing service to load company
         company = db.query(Company).filter(Company.id == company_id).first()
         if company is None:
@@ -26,6 +27,7 @@ class AdminOnboardingService:
 
         merchant_name = company.name or f"company-{company.id}"
         api_key = company.api_key
+        # pick base URL from settings; fall back to existing default
         base_url = getattr(settings, 'DEFAULT_MERCHANT_BASE_URL_DEV', 'http://localhost:8000')
         env = getattr(settings, 'ENVIRONMENT_NAME', 'dev')
 
@@ -33,8 +35,8 @@ class AdminOnboardingService:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         if generate_onboarding is None:
-            # We cannot generate here; still render HTML via direct call to the script is not possible.
-            # Raise a 503 to indicate the service is not available on this host.
+            # Attempt to at least populate HTML URL if possible by raising a 503 or generating HTML via other means.
+            # Here we raise 503 to indicate generator isn't available on this host.
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Onboarding generator is not available on this server")
 
         html_path, pdf_path = generate_onboarding(
@@ -45,4 +47,17 @@ class AdminOnboardingService:
             output_dir=output_dir,
         )
 
-        return company, html_path, pdf_path
+        html_name = Path(html_path).name
+        pdf_name = Path(pdf_path).name if pdf_path is not None else None
+
+        html_url = f"/static/onboarding/{html_name}"
+        pdf_url = f"/static/onboarding/{pdf_name}" if pdf_name else None
+
+        return AdminOnboardingGenerateResponse(
+            company_id=company.id,
+            html_path=str(html_path),
+            pdf_path=str(pdf_path) if pdf_path is not None else None,
+            html_url=html_url,
+            pdf_url=pdf_url,
+            environment=env,
+        )

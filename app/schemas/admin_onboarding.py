@@ -15,3 +15,12 @@ class MerchantOnboardingInfo(BaseModel):
     examples: List[MerchantOnboardingExample] = []
 
     model_config = {"from_attributes": True}
+
+
+class AdminOnboardingGenerateResponse(BaseModel):
+    company_id: int
+    html_path: str
+    pdf_path: str | None = None
+    html_url: str
+    pdf_url: str | None = None
+    environment: str
